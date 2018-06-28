@@ -10,7 +10,5 @@ class JsonObjectReader extends JsonElementReader[JsonObject] {
   override def canRead(json: String): Boolean =
     json != null && !json.isEmpty && nextNonWhitespace(json).getOrElse("").charAt(0) == '{'
 
-  override def fromJson(json: String): JsonObject = null
-
-  def xx(json: String): Option[String] = nextNonWhitespace(json)
+  override def fromJson(json: String): JsonObject = ???
 }

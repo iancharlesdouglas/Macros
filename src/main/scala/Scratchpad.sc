@@ -16,8 +16,3 @@ val reader = new JsonObjectReader
 
 reader.nextNonWhitespace("   f")
 
-reader.xx("   g")
-
-import scala.util.matching.Regex
-
-"""[^\s]""".r.findFirstIn("   f")

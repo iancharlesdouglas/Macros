@@ -5,7 +5,7 @@ import scala.util.matching.Regex
 /**
   * Created by Ian on 27/06/2018.
   */
-trait JsonElementReader[T] {
+abstract class JsonElementReader[T] {
 
   def canRead(json: String): Boolean
 
