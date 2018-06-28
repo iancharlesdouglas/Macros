@@ -5,9 +5,6 @@ import scala.Exception
 /**
   * Created by Ian on 28/06/2018.
   */
-class JsonException extends Exception {
+class JsonException(message: String) extends Exception(message) {
 
-  def this(message: String) {
-    super(message)
-  }
 }

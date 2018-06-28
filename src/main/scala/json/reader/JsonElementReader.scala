@@ -1,5 +1,7 @@
 package json.reader
 
+import json.JsonElement
+
 import scala.util.matching.Regex
 
 /**
@@ -7,8 +9,5 @@ import scala.util.matching.Regex
   */
 abstract class JsonElementReader[T] extends JsonReader {
 
-  val body = new StringBuilder
-
-  def fromJson(json: String): T
-
+  def nextNonWhitespace(json: String):Option[String] = """[^\s]""".r.findFirstIn(json)
 }
