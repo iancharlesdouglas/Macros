@@ -6,7 +6,7 @@ import json.{JsonElement, JsonObject}
 /**
   * Created by Ian on 27/06/2018.
   */
-class JsonObjectReader extends JsonElementReader[JsonObject] {
+class JsonObjectReader extends JsonReader {
 
   override def canRead(json: String): Boolean =
     json != null && !json.isEmpty && nextNonWhitespace(json).getOrElse("").charAt(0) == '{'
@@ -22,9 +22,9 @@ class JsonObjectReader extends JsonElementReader[JsonObject] {
 
   def readBodyElement(json: String, jsonObject: JsonObject, readers: List[JsonReader]): (JsonObject, String) = {
 
-    val terminator = """(\s?)([}])(.+)""".r.findFirstMatchIn(json)
+    val terminator = """([\s|!{]?)([}]+)(.?)""".r.findFirstMatchIn(json)
     if (terminator.nonEmpty)
-      (jsonObject, json)
+      (jsonObject, terminator.get.group(3))
     else {
       val delimiter = """(\s?)(,)(.+)""".r.findFirstMatchIn(json)
       if (delimiter.nonEmpty)

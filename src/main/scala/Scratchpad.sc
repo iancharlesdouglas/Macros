@@ -33,3 +33,6 @@ val delimJson = " , one"
 """(\s?)(,)(.+)""".r.findFirstMatchIn(delimJson).get.group(2)
 
 val js = """{"trade": {}}"""
+
+val obj = new JsonObjectReader().read(js, "", null, List(new JsonObjectReader))
+obj._1.elements
