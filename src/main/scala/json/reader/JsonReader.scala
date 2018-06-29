@@ -9,7 +9,9 @@ abstract class JsonReader {
 
   def canRead(json: String): Boolean
 
-  def read(json: String, id: String, parent: JsonElement): (JsonElement, String)
+  def read(json: String, id: String, parent: JsonElement, readers: List[JsonReader]): (JsonElement, String)
 
-  val readers = List(new JsonObjectReader)
+  //lazy val readers = List(new JsonObjectReader)
+
+  def nextNonWhitespace(json: String):Option[String] = """[^\s]""".r.findFirstIn(json)
 }

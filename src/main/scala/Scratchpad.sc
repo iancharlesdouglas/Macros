@@ -31,3 +31,5 @@ start.get.group(3)
 
 val delimJson = " , one"
 """(\s?)(,)(.+)""".r.findFirstMatchIn(delimJson).get.group(2)
+
+val js = """{"trade": {}}"""
