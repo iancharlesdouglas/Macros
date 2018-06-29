@@ -1,6 +1,6 @@
 //import DebugMacro._
 import json.reader.JsonObjectReader
-
+import json.rdr.ObjectReader
 
 //hello()
 
@@ -32,7 +32,7 @@ start.get.group(3)
 val delimJson = " , one"
 """(\s?)(,)(.+)""".r.findFirstMatchIn(delimJson).get.group(2)
 
-val js = """{"trade": {}}"""
+val js = """{"trade": "ABC"}"""
 
-val obj = new JsonObjectReader().read(js, "", null, List(new JsonObjectReader))
-obj._1.elements
+val objRdr = new ObjectReader()
+objRdr.read(js)._1

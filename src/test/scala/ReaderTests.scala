@@ -3,11 +3,19 @@
   */
 
 import json.JsonObject
+import json.rdr.ObjectReader
 import json.reader.JsonObjectReader
 import org.scalatest.{FlatSpec, Matchers}
 
 class ReaderTests extends FlatSpec with Matchers {
 
+  "Object reader" should "read empty object" in {
+    val json = "{}"
+    val reader = new ObjectReader
+    val (obj, pos) = reader.read(json)
+    val x = 1
+  }
+  /*
   "JSON object reader" should "read an empty object" in {
 
     val json = "{}"
@@ -26,4 +34,5 @@ class ReaderTests extends FlatSpec with Matchers {
     val x = 1
     //obj shouldBe JsonObject
   }
+  */
 }
