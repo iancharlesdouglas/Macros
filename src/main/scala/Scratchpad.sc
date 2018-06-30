@@ -2,6 +2,8 @@
 import json.reader.JsonObjectReader
 import json.rdr.ObjectReader
 
+import scala.collection.mutable.ListBuffer
+
 //hello()
 
 //printParam(1)
@@ -32,7 +34,5 @@ start.get.group(3)
 val delimJson = " , one"
 """(\s?)(,)(.+)""".r.findFirstMatchIn(delimJson).get.group(2)
 
-val js = """{"trade": "ABC"}"""
-
-val objRdr = new ObjectReader()
-objRdr.read(js)._1
+var lb = ListBuffer('a', 'b', 'c')
+lb.foldLeft("")(_ + _)

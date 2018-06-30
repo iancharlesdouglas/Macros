@@ -1,6 +1,6 @@
 package json.rdr
 import json.JsonElement
-import json.exceptions.JsonException
+import json.exceptions.{JsonException, UnrecognisedRootElementException}
 
 class JsonReader extends Reader {
 
@@ -13,6 +13,6 @@ class JsonReader extends Reader {
     else if (chr == '{')
       new ObjectReader().read(json, position + 1)
     else
-      throw new JsonException("Unrecognised root element")
+      throw new UnrecognisedRootElementException(s"Character: $chr")
   }
 }

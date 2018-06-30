@@ -7,21 +7,22 @@ import json.rdr.{JsonReader, ObjectReader}
 import json.reader.JsonObjectReader
 import org.scalatest.{FlatSpec, Matchers}
 
+import scala.collection.mutable.ListBuffer
+
 class ReaderTests extends FlatSpec with Matchers {
 
   "Object reader" should "read empty object" in {
     val json = "{}"
     val reader = new JsonReader
     val (obj, pos) = reader.read(json)
-    obj shouldBe new JsonObject("")
+    obj shouldBe JsonObject("")
   }
 
   it should "read nested object with id" in {
     val json = """{ "thing": {} }"""
     val reader = new JsonReader
     val (obj, pos) = reader.read(json)
-    val x = 1
-    //obj shouldBe new JsonObject
+    obj shouldBe new JsonObject("", JsonObject("thing"))
   }
   /*
   "JSON object reader" should "read an empty object" in {

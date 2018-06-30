@@ -1,5 +1,5 @@
 package json.rdr
-import json.exceptions.JsonException
+import json.exceptions.{InvalidObjectFormatException, JsonException}
 import json.{JsonElement, JsonObject}
 
 /**
@@ -8,7 +8,7 @@ import json.{JsonElement, JsonObject}
 class ObjectReader extends Reader {
 
   override def read(json: String, position: Integer = 0, identifier: String = ""): (JsonElement, Integer) =
-    readBody(json, position, new JsonObject(identifier))
+    readBody(json, position, JsonObject(identifier))
 
   def readBody(json: String, position: Integer, jsonObject: JsonObject): (JsonObject, Integer) = {
 
@@ -26,7 +26,7 @@ class ObjectReader extends Reader {
         readBody(json, newPosition, jsonObject)
       }
       else
-        throw new JsonException("Invalid object format")
+        throw new InvalidObjectFormatException(s"At: $position")
     }
   }
 }

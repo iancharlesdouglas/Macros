@@ -1,5 +1,5 @@
 package json.rdr
-import json.exceptions.JsonException
+import json.exceptions.{JsonException, ReadPastEndOfElementException}
 import json.{JsonElement, JsonString}
 
 import scala.collection.mutable.ListBuffer
@@ -15,7 +15,7 @@ class StrReader extends Reader {
   def readString(json: String, position: Integer, identifier: String, body: ListBuffer[Char],
                  escaped: Boolean = false): (JsonString, Integer) = {
     if (position == json.size)
-      throw new JsonException("Read past end of input in string field body")
+      throw new ReadPastEndOfElementException(s"At: $position")
     else {
       val chr = json.charAt(position)
       if (chr == '"' && !escaped)
