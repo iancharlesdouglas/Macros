@@ -2,7 +2,9 @@ package json.rdr
 import json.JsonElement
 import json.exceptions.{JsonException, UnrecognisedRootElementException}
 
-class JsonReader extends Reader {
+case object JsonReader extends Reader {
+
+  def read(json: String): JsonElement = read(json, 0, "")._1
 
   override def read(json: String, position: Integer, identifier: String): (JsonElement, Integer) = readBody(json, position)
 
