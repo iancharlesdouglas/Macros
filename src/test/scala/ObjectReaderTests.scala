@@ -61,4 +61,17 @@ class ObjectReaderTests extends FlatSpec with Matchers {
     val obj = JsonReader.read(json)
     obj shouldBe new JsonObject("", JsonNull("exists"))
   }
+
+  it should "ignore non-space character whitespace" in {
+    val formFeed = '\f'
+    val tab = '\t'
+    val json =
+      s"""$formFeed
+        |{
+        |$tab  "exists": false
+        |}
+      """.stripMargin
+    val obj = JsonReader.read(json)
+    obj shouldBe new JsonObject("", JsonBoolean("exists", false))
+  }
 }
