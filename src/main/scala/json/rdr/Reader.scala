@@ -9,5 +9,5 @@ abstract class Reader {
 
   def read(json: String, position: Integer = 0, identifier: String = "") : (JsonElement, Integer)
 
-  def whitespace(what: Char): Boolean = List(' ').contains(what)
+  def whitespace(what: Char): Boolean = List(' ', '\r', '\n', '\t', '\f').contains(what)
 }

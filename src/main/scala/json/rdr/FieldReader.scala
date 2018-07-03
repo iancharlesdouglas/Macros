@@ -1,5 +1,5 @@
 package json.rdr
-import json.JsonElement
+import json.{JsonBoolean, JsonElement, JsonNull}
 import json.exceptions.{JsonException, ReadPastEndOfElementException}
 
 import scala.collection.mutable.ListBuffer
@@ -28,7 +28,13 @@ class FieldReader extends Reader {
         chr match {
           case '"' => new StrReader().read(json, position + 1, idFrom(identifier))
           case '{' => new ObjectReader().read(json, position + 1, idFrom(identifier))
-          case _ => readBody(json, position + 1, identifier) // TODO - Booleans, null, number
+          case 't' if json.length > position + 3 && json.substring(position, position + 4) == "true" =>
+            (new JsonBoolean(idFrom(identifier), true), position + 4)
+          case 'f' if json.length > position + 4 && json.substring(position, position + 5) == "false" =>
+            (new JsonBoolean(idFrom(identifier), false), position + 5)
+          case 'n' if json.length > position + 3 && json.substring(position, position + 4) == "null" =>
+            (new JsonNull(idFrom(identifier)), position + 4)
+          case _ => readBody(json, position + 1, identifier) // TODO - number, array
         }
       } else if (whitespace(chr))
         readBody(json, position + 1, identifier, beyondIdentifier, beyondColon)

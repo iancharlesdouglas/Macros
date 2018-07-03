@@ -12,4 +12,12 @@ case class JsonObject(id: String) extends JsonElement(id) {
     this.elements ++= childElements
   }
 
+  override def equals(obj: scala.Any): Boolean = {
+    if (obj.isInstanceOf[JsonObject]) {
+      val other: JsonObject = obj.asInstanceOf[JsonObject]
+      other.id == id && other.elements.forall(this.elements.contains(_))
+    } else {
+      false
+    }
+  }
 }

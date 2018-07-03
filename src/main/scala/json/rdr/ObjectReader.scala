@@ -24,8 +24,7 @@ class ObjectReader extends Reader {
         val (field, newPosition) = new FieldReader().read(json, position + 1)
         jsonObject.elements += field
         readBody(json, newPosition, jsonObject)
-      }
-      else
+      } else
         throw new InvalidObjectFormatException(s"At: $position")
     }
   }
