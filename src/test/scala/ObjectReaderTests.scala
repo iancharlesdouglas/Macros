@@ -2,7 +2,7 @@
   * Created by Ian on 29/06/2018.
   */
 
-import json.{JsonBoolean, JsonNull, JsonObject, JsonString}
+import json._
 import json.rdr.JsonReader
 import org.scalatest.{FlatSpec, Matchers}
 
@@ -11,7 +11,7 @@ class ObjectReaderTests extends FlatSpec with Matchers {
   "Object reader" should "read empty object" in {
     val json = "{}"
     val obj = JsonReader.read(json)
-    obj shouldBe JsonObject("")
+    obj shouldBe JsonObject()
   }
 
   it should "read nested object with id" in {
@@ -73,5 +73,11 @@ class ObjectReaderTests extends FlatSpec with Matchers {
       """.stripMargin
     val obj = JsonReader.read(json)
     obj shouldBe new JsonObject("", JsonBoolean("exists", false))
+  }
+
+  it should "read a number value" in {
+    val json = """{ "number": 1.23 }"""
+    val obj = JsonReader.read(json)
+    obj shouldBe new JsonObject("", JsonNumber("number", BigDecimal.valueOf(1.23)))
   }
 }
