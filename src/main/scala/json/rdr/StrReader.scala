@@ -30,6 +30,7 @@ class StrReader extends Reader {
           case 't' => '\t'
           case 'f' => '\f'
           case 'b' => '\b'
+            // TODO - Unicode 16 (made of two Unicode 8s)
           case 'u' if json.length > position + 4 => Integer.valueOf(json.substring(position + 1, position + 4), 16).toChar
           case 'u' => throw new UnrecognisedEscapeSequenceException("'\\u'")
           case c => c

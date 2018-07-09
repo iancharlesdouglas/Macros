@@ -34,8 +34,8 @@ class FieldReader extends Reader {
             (new JsonBoolean(idFrom(identifier), false), position + 5)
           case 'n' if json.length > position + 3 && json.substring(position, position + 4) == "null" =>
             (new JsonNull(idFrom(identifier)), position + 4)
-          case ',' => readNumber(json, position, identifier)
-          case _ => readBody(json, position + 1, identifier) // TODO - number, array
+          //case ',' => readNumber(json, position, identifier)
+          case _ => readNumber(json, position, identifier) // TODO - number, array
         }
       } else if (whitespace(chr))
         readBody(json, position + 1, identifier, beyondIdentifier, beyondColon)
