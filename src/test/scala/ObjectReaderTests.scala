@@ -26,6 +26,18 @@ class ObjectReaderTests extends FlatSpec with Matchers {
     obj shouldBe new JsonObject("", new JsonObject("thing", JsonString("id", "ABC_1")))
   }
 
+  it should "read nested object with two string properties" in {
+    val json = """{ "thing": { "id": "120E", "name": "A Name" } }"""
+    val obj = JsonReader.read(json)
+    obj shouldBe new JsonObject("", new JsonObject("thing", JsonString("id", "120E"), JsonString("name", "A Name")))
+  }
+
+  it should "read nested object with a string and a numeric property" in {
+    val json = """{ "thing": { "id": "120E", "price": 123E3 } }"""
+    val obj = JsonReader.read(json)
+    obj shouldBe new JsonObject("", new JsonObject("thing", JsonString("id", "120E"), JsonNumber("price", BigDecimal(123000))))
+  }
+
   it should "read string property escaped with CRLFs" in {
     val json = """{ "prop": "Line 1\r\nLine 2" }"""
     val obj = JsonReader.read(json)
@@ -76,8 +88,30 @@ class ObjectReaderTests extends FlatSpec with Matchers {
   }
 
   it should "read a number value" in {
+
     val json = """{ "number": 1.23 }"""
     val obj = JsonReader.read(json)
     obj shouldBe new JsonObject("", JsonNumber("number", BigDecimal.valueOf(1.23)))
+
+    val jsonNeg = """{ "number": -1.23 }"""
+    val objForNeg = JsonReader.read(jsonNeg)
+    objForNeg shouldBe new JsonObject("", JsonNumber("number", BigDecimal.valueOf(-1.23)))
+  }
+
+  it should "read a negative exponential number value" in {
+    val json = """{ "number": 123e-2 }"""
+    val obj = JsonReader.read(json)
+    obj shouldBe new JsonObject("", JsonNumber("number", BigDecimal.valueOf(1.23)))
+  }
+
+  it should "read a positive exponential number value" in {
+
+    val json = """{ "number": 1.23e+2 }"""
+    val obj = JsonReader.read(json)
+    obj shouldBe new JsonObject("", JsonNumber("number", BigDecimal.valueOf(123)))
+
+    val jsonUnsigned = """{ "number": 1.23e2 }"""
+    val objForUnsgn = JsonReader.read(jsonUnsigned)
+    objForUnsgn shouldBe new JsonObject("", JsonNumber("number", BigDecimal.valueOf(123)))
   }
 }
