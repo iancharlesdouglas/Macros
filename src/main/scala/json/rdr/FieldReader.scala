@@ -26,16 +26,16 @@ class FieldReader extends Reader {
         readBody(json, position + 1, identifier, beyondIdentifier)
       else if (beyondColon && !whitespace(chr)) {
         chr match {
-          case '"' => new StrReader().read(json, position + 1, idFrom(identifier))
-          case '{' => new ObjectReader().read(json, position + 1, idFrom(identifier))
+          case '"' => new StrReader().read(json, position + 1, stringFromChars(identifier))
+          case '{' => new ObjectReader().read(json, position + 1, stringFromChars(identifier))
           case 't' if json.length > position + 3 && json.substring(position, position + 4) == "true" =>
-            (new JsonBoolean(idFrom(identifier), true), position + 4)
+            (new JsonBoolean(stringFromChars(identifier), true), position + 4)
           case 'f' if json.length > position + 4 && json.substring(position, position + 5) == "false" =>
-            (new JsonBoolean(idFrom(identifier), false), position + 5)
+            (new JsonBoolean(stringFromChars(identifier), false), position + 5)
           case 'n' if json.length > position + 3 && json.substring(position, position + 4) == "null" =>
-            (new JsonNull(idFrom(identifier)), position + 4)
-          //case ',' => readNumber(json, position, identifier)
-          case _ => new NumberReader().read(json, position, idFrom(identifier)) // TODO - number, array
+            (new JsonNull(stringFromChars(identifier)), position + 4)
+          case '[' => new ArrayReader().read(json, position, stringFromChars(identifier))
+          case _ => new NumberReader().read(json, position, stringFromChars(identifier))
         }
       } else if (whitespace(chr))
         readBody(json, position + 1, identifier, beyondIdentifier, beyondColon)
@@ -45,10 +45,4 @@ class FieldReader extends Reader {
       }
     }
   }
-
-  private def readNumber(json: String, position: Integer, identifier: ListBuffer[Char]): (JsonNumber, Integer) = {
-    null
-  }
-
-  private def idFrom(identifier: ListBuffer[Char]): String = identifier.foldLeft("")(_ + _)
 }
