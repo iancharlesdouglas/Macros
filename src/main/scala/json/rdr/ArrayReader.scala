@@ -16,8 +16,7 @@ class ArrayReader extends Reader {
     if (position == json.size)
       (jsonArray, position)
     else {
-      val chr = json.charAt(position)
-      chr match {
+      json.charAt(position) match {
         case c if whitespace(c) => readBody(json, position + 1, jsonArray)
         case ']' => (jsonArray, position + 1)
         case '{' => {
@@ -39,33 +38,21 @@ class ArrayReader extends Reader {
           jsonArray.elements += new JsonBoolean("", true)
           readBody(json, position + 4, jsonArray)
         }
-        case 'f' if json.length > position + 4 && json.substring(position, position + 5) == "false" =>
-          (new JsonBoolean(stringFromChars(identifier), false), position + 5)
-        case 'n' if json.length > position + 3 && json.substring(position, position + 4) == "null" =>
-          (new JsonNull(stringFromChars(identifier)), position + 4)
+        case 'f' if json.length > position + 4 && json.substring(position, position + 5) == "false" => {
+          jsonArray.elements += new JsonBoolean("", false)
+          readBody(json, position + 5, jsonArray)
+        }
+        case 'n' if json.length > position + 3 && json.substring(position, position + 4) == "null" => {
+          jsonArray.elements += new JsonNull("")
+          readBody(json, position + 4, jsonArray)
+        }
         case ',' => readBody(json, position + 1, jsonArray)
-        case _ => throw new InvalidArrayFormatException(s"At: $position")
+        case _ => {
+          val (number, newPosition) = new NumberReader().read(json, position)
+          jsonArray.elements += number
+          readBody(json, newPosition, jsonArray)
+        }
       }
-      /*if (whitespace(chr))
-        readBody(json, position + 1, jsonArray)
-      else if (chr == ']')
-        (jsonArray, position + 1)
-      else if (chr == '{') {
-        val (field, newPosition) = new ObjectReader().read(json, position + 1)
-        jsonArray.elements += field
-        readBody(json, newPosition, jsonArray)
-      } else if (chr == '[') {
-        val (array, newPosition) = new ArrayReader().read(json, position + 1)
-        jsonArray.elements += array
-        readBody(json, newPosition, jsonArray)
-      } else if (chr == '"') {
-        val (string, newPosition) = new StrReader().read(json, position + 1)
-        jsonArray.elements += string
-        readBody(json, newPosition, jsonArray)
-      } else if (chr == ',')
-        readBody(json, position + 1, jsonArray)
-      else
-        throw new InvalidArrayFormatException(s"At: $position")*/
     }
   }
 }

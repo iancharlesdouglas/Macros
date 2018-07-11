@@ -5,4 +5,7 @@ package json
   */
 case class JsonNumber(id: String, value: BigDecimal) extends JsonElement(id) {
 
+  def this(value: BigDecimal) {
+    this("", value)
+  }
 }

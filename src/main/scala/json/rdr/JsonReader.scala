@@ -14,6 +14,8 @@ case object JsonReader extends Reader {
       readBody(json, position + 1)
     else if (chr == '{')
       new ObjectReader().read(json, position + 1)
+    else if (chr == '[')
+      new ArrayReader().read(json, position + 1)
     else
       throw new UnrecognisedRootElementException(s"Character: $chr")
   }
