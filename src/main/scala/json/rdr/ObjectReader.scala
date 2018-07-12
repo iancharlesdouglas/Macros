@@ -1,5 +1,5 @@
 package json.rdr
-import json.exceptions.{InvalidObjectFormatException, JsonException}
+import json.exceptions.{InvalidObjectFormatException}
 import json.{JsonElement, JsonObject}
 
 /**
@@ -19,7 +19,7 @@ class ObjectReader extends Reader {
       if (whitespace(chr))
         readBody(json, position + 1, jsonObject)
       else if (chr == '}')
-        (jsonObject, position)
+        (jsonObject, position + 1)
       else if (chr == '"') {
         val (field, newPosition) = new FieldReader().read(json, position + 1)
         jsonObject.elements += field

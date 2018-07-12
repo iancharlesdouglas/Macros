@@ -46,5 +46,22 @@ class ArrayReaderTests  extends FlatSpec with Matchers {
     val array = JsonReader.read(json)
     array shouldBe JsonArray()
   }
-  // TODO - array containing object, array containing another array, object field containing array
+
+  it should "read an array containing an object" in {
+    val json = """[ { "id": 1, "name": "One" } ]"""
+    val array = JsonReader.read(json)
+    array shouldBe JsonArray(JsonObject(JsonNumber("id", 1), JsonString("name", "One")))
+  }
+
+  it should "read an array containing another array" in {
+    val json = """[ [1] ]"""
+    val array = JsonReader.read(json)
+    array shouldBe JsonArray(JsonArray(JsonNumber(1)))
+  }
+
+  it should "read an object one of whose members is an array" in {
+    val json = """{ "array": [1] }"""
+    val obj = JsonReader.read(json)
+    obj shouldBe JsonObject(JsonArray("array", JsonNumber(1)))
+  }
 }

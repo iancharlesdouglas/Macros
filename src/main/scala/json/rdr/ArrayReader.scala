@@ -17,7 +17,7 @@ class ArrayReader extends Reader {
       (jsonArray, position)
     else {
       json.charAt(position) match {
-        case c if whitespace(c) => readBody(json, position + 1, jsonArray)
+        case chr if whitespace(chr) => readBody(json, position + 1, jsonArray)
         case ']' => (jsonArray, position + 1)
         case '{' => {
           val (field, newPosition) = new ObjectReader().read(json, position + 1)

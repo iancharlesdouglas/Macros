@@ -34,7 +34,7 @@ class FieldReader extends Reader {
             (new JsonBoolean(stringFromChars(identifier), false), position + 5)
           case 'n' if json.length > position + 3 && json.substring(position, position + 4) == "null" =>
             (new JsonNull(stringFromChars(identifier)), position + 4)
-          case '[' => new ArrayReader().read(json, position, stringFromChars(identifier))
+          case '[' => new ArrayReader().read(json, position + 1, stringFromChars(identifier))
           case _ => new NumberReader().read(json, position, stringFromChars(identifier))
         }
       } else if (whitespace(chr))
