@@ -13,45 +13,38 @@ class ArrayReader extends Reader {
 
   def readBody(json: String, position: Integer, jsonArray: JsonArray): (JsonArray, Integer) = {
 
-    if (position == json.size)
+    if (position == json.length)
       (jsonArray, position)
     else {
       json.charAt(position) match {
         case chr if whitespace(chr) => readBody(json, position + 1, jsonArray)
         case ']' => (jsonArray, position + 1)
-        case '{' => {
+        case '{' =>
           val (field, newPosition) = new ObjectReader().read(json, position + 1)
           jsonArray.elements += field
           readBody(json, newPosition, jsonArray)
-        }
-        case '[' => {
+        case '[' =>
           val (array, newPosition) = new ArrayReader().read(json, position + 1)
           jsonArray.elements += array
           readBody(json, newPosition, jsonArray)
-        }
-        case '"' => {
+        case '"' =>
           val (string, newPosition) = new StrReader().read(json, position + 1)
           jsonArray.elements += string
           readBody(json, newPosition, jsonArray)
-        }
-        case 't' if json.length > position + 3 && json.substring(position, position + 4) == "true" => {
+        case 't' if json.length > position + 3 && json.substring(position, position + 4) == "true" =>
           jsonArray.elements += new JsonBoolean("", true)
           readBody(json, position + 4, jsonArray)
-        }
-        case 'f' if json.length > position + 4 && json.substring(position, position + 5) == "false" => {
+        case 'f' if json.length > position + 4 && json.substring(position, position + 5) == "false" =>
           jsonArray.elements += new JsonBoolean("", false)
           readBody(json, position + 5, jsonArray)
-        }
-        case 'n' if json.length > position + 3 && json.substring(position, position + 4) == "null" => {
+        case 'n' if json.length > position + 3 && json.substring(position, position + 4) == "null" =>
           jsonArray.elements += new JsonNull("")
           readBody(json, position + 4, jsonArray)
-        }
         case ',' => readBody(json, position + 1, jsonArray)
-        case _ => {
+        case _ =>
           val (number, newPosition) = new NumberReader().read(json, position)
           jsonArray.elements += number
           readBody(json, newPosition, jsonArray)
-        }
       }
     }
   }

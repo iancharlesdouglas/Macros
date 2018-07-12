@@ -18,28 +18,27 @@ class StrReader extends Reader {
     if (position == json.size)
       throw new ReadPastEndOfElementException(s"At: $position")
     else {
-      val chr = json.charAt(position)
-      if (chr == '"' && !escaped)
-        (JsonString(identifier, body.foldLeft("")(_ + _)), position + 1)
-      else if (chr == '\\')
-        readString(json, position + 1, identifier, body, true)
-      else if (escaped) {
-        val substChar = chr match {
-          case 'n' => '\n'
-          case 'r' => '\r'
-          case 't' => '\t'
-          case 'f' => '\f'
-          case 'b' => '\b'
+      json.charAt(position) match {
+        case '"' if !escaped => (JsonString(identifier, body.foldLeft("")(_ + _)), position + 1)
+        case '\\' => readString(json, position + 1, identifier, body, true)
+        case chr if escaped => {
+          body += (chr match {
+            case 'n' => '\n'
+            case 'r' => '\r'
+            case 't' => '\t'
+            case 'f' => '\f'
+            case 'b' => '\b'
             // TODO - Unicode 16 (made of two Unicode 8s)
-          case 'u' if json.length > position + 4 => Integer.valueOf(json.substring(position + 1, position + 4), 16).toChar
-          case 'u' => throw new UnrecognisedEscapeSequenceException("'\\u'")
-          case c => c
+            case 'u' if json.length > position + 4 => Integer.valueOf(json.substring(position + 1, position + 4), 16).toChar
+            case 'u' => throw new UnrecognisedEscapeSequenceException("'\\u'")
+            case c => c
+          })
+          readString(json, position + 1 + (if (chr == 'u') 3 else 0), identifier, body)
         }
-        body += substChar
-        readString(json, position + 1 + (if (chr == 'u') 3 else 0), identifier, body)
-      } else {
-        body += chr
-        readString(json, position + 1, identifier, body)
+        case chr => {
+          body += chr
+          readString(json, position + 1, identifier, body)
+        }
       }
     }
   }

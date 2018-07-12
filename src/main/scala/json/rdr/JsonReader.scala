@@ -1,6 +1,6 @@
 package json.rdr
 import json.JsonElement
-import json.exceptions.{JsonException, UnrecognisedRootElementException}
+import json.exceptions.UnrecognisedRootElementException
 
 case object JsonReader extends Reader {
 
@@ -9,14 +9,11 @@ case object JsonReader extends Reader {
   override def read(json: String, position: Integer, identifier: String): (JsonElement, Integer) = readBody(json, position)
 
   def readBody(json: String, position: Integer): (JsonElement, Integer) = {
-    val chr = json.charAt(position)
-    if (whitespace(chr))
-      readBody(json, position + 1)
-    else if (chr == '{')
-      new ObjectReader().read(json, position + 1)
-    else if (chr == '[')
-      new ArrayReader().read(json, position + 1)
-    else
-      throw new UnrecognisedRootElementException(s"Character: $chr")
+    json.charAt(position) match {
+      case chr if whitespace(chr) => readBody(json, position + 1)
+      case '{' => new ObjectReader().read(json, position + 1)
+      case '[' => new ArrayReader().read(json, position + 1)
+      case chr => throw new UnrecognisedRootElementException(s"Character: $chr")
+    }
   }
 }

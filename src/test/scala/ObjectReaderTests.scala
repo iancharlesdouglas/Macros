@@ -3,6 +3,7 @@
   */
 
 import json._
+import json.exceptions.UnrecognisedRootElementException
 import json.rdr.JsonReader
 import org.scalatest.{FlatSpec, Matchers}
 
@@ -121,5 +122,54 @@ class ObjectReaderTests extends FlatSpec with Matchers {
     val jsonUnsigned = """{ "number": 1.23e2 }"""
     val objForUnsgn = JsonReader.read(jsonUnsigned)
     objForUnsgn shouldBe JsonObject(JsonNumber("number", BigDecimal(123)))
+  }
+
+  it should "read a realistically complex object" in {
+
+    val json =
+      """{"id": 123000,
+        |"name": "ACME Corporation",
+        |"trades": [
+        | { "tradeId": 10010,
+        |   "isin": "GE3992992",
+        |   "price": 10e8,
+        |   "isActive": true,
+        |    "valuation": {
+        |       "id": 1,
+        |       "value": 10200.21} },
+        | { "tradeId": 10020,
+        |   "isin": null,
+        |   "price": 601e6,
+        |   "isActive": false }
+        |]
+        |}""".stripMargin
+
+    val obj = JsonReader.read(json)
+
+    obj shouldBe JsonObject(JsonNumber("id", 123000),
+      JsonString("name", "ACME Corporation"),
+      JsonArray("trades",
+        JsonObject(
+          JsonNumber("tradeId", 10010),
+          JsonString("isin", "GE3992992"),
+          JsonNumber("price", 1000000000),
+          JsonBoolean("isActive", true),
+          JsonObject("valuation",
+            JsonNumber("id", 1),
+            JsonNumber("value", 10200.21))),
+        JsonObject(
+          JsonNumber("tradeId", 10020),
+          JsonNull("isin"),
+          JsonNumber("price", 601000000),
+          JsonBoolean("isActive", false)
+        )))
+  }
+
+  it should "throw an exception if the document root character is unsupported" in {
+    val json = "@ { }"
+    val thrown = intercept[UnrecognisedRootElementException] {
+      val obj = JsonReader.read(json)
+    }
+    thrown.getMessage shouldBe "Character: @"
   }
 }
