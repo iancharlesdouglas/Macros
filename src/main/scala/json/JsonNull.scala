@@ -6,3 +6,7 @@ package json
 case class JsonNull(id: String) extends JsonElement(id) {
 
 }
+
+object JsonNull {
+  def apply(): JsonNull = new JsonNull("")
+}

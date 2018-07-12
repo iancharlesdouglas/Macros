@@ -6,3 +6,7 @@ package json
 case class JsonString(id: String, value: String) extends JsonElement(id) {
 
 }
+
+object JsonString {
+  def apply(value: String): JsonString = new JsonString("", value)
+}

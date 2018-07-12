@@ -7,7 +7,12 @@ import scala.collection.mutable.ListBuffer
   */
 case class JsonObject(id: String = "") extends JsonElement(id) {
 
-  def this(id: String, childElements: JsonElement*) = {
+  /*def this(id: String, childElements: JsonElement*) = {
+    this(id)
+    this.elements ++= childElements
+  }*/
+
+  def this(id: String, childElements: Seq[JsonElement]) = {
     this(id)
     this.elements ++= childElements
   }
@@ -20,4 +25,10 @@ case class JsonObject(id: String = "") extends JsonElement(id) {
       false
     }
   }
+}
+
+object JsonObject {
+  def apply(): JsonObject = JsonObject("")
+  def apply(id: String, childElements: JsonElement*): JsonObject = new JsonObject(id, childElements)
+  def apply(childElements: JsonElement*): JsonObject = new JsonObject("", childElements)
 }

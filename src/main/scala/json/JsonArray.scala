@@ -5,10 +5,15 @@ package json
   */
 case class JsonArray(id: String = "") extends JsonElement(id) {
 
-  def this(id: String, childElements: JsonElement*) = {
+  def this(id: String, childElements: Seq[JsonElement]) = {
     this(id)
     this.elements ++= childElements
   }
+
+  /*def this(id: String, childElements: JsonElement*) = {
+    this(id, childElements.toSeq)
+    //this.elements ++= childElements
+  }*/
 
   override def equals(obj: scala.Any): Boolean = {
     if (obj.isInstanceOf[JsonArray]) {
@@ -18,4 +23,9 @@ case class JsonArray(id: String = "") extends JsonElement(id) {
       false
     }
   }
+}
+
+object JsonArray {
+  def apply(): JsonArray = new JsonArray("")
+  def apply(children: JsonElement*): JsonArray = new JsonArray("", children)
 }
