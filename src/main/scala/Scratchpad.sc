@@ -1,14 +1,5 @@
-import scala.util.matching.Regex
+import DebugMacro._
 
-//val m = "(d*)([eE][+-]d)?".r.findFirstMatchIn("1.23e+1")
-val m = "([+-]?[\\d.]+)((?:[eE][+-]?\\d+)?)".r
-  .findFirstMatchIn("1.23")
+case class Person(name: String, id: Integer)
 
-m.get.group(1)
-m.get.group(2)
-val exp = m.get.group(2).isEmpty
-
-val e = "([eE])([+-]?)(\\d+)".r.findFirstMatchIn("e27")
-e.get.group(1)
-e.get.group(2)
-e.get.group(3)
+listMembers(new Person("Ian", 100))

@@ -1,4 +1,4 @@
-package json.rdr
+package json.reader
 
 import json.JsonElement
 

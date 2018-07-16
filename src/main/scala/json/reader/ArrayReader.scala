@@ -1,4 +1,4 @@
-package json.rdr
+package json.reader
 
 import json._
 import json.exceptions.{InvalidArrayFormatException, InvalidObjectFormatException}

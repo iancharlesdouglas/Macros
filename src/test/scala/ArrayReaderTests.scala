@@ -1,8 +1,8 @@
 import json._
-import json.rdr.JsonReader
+import json.reader.JsonReader
 import org.scalatest.{FlatSpec, Matchers}
 
-class ArrayReaderTests  extends FlatSpec with Matchers {
+class ArrayReaderTests extends FlatSpec with Matchers {
 
   "Array reader" should "read an array containing a single string value" in {
     val json = """["A String"]"""

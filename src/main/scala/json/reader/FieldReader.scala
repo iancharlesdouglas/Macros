@@ -1,4 +1,4 @@
-package json.rdr
+package json.reader
 import json.{JsonBoolean, JsonElement, JsonNull, JsonNumber}
 import json.exceptions.{JsonException, ReadPastEndOfElementException}
 

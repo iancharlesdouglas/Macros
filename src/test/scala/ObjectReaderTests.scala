@@ -4,7 +4,7 @@
 
 import json._
 import json.exceptions.UnrecognisedRootElementException
-import json.rdr.JsonReader
+import json.reader.JsonReader
 import org.scalatest.{FlatSpec, Matchers}
 
 class ObjectReaderTests extends FlatSpec with Matchers {
@@ -86,13 +86,13 @@ class ObjectReaderTests extends FlatSpec with Matchers {
   it should "ignore non-space character whitespace" in {
     val formFeed = '\f'
     val tab = '\t'
-    val json =
+    val jsonWithTabFF =
       s"""$formFeed
         |{
         |$tab  "exists": false
         |}
       """.stripMargin
-    val obj = JsonReader.read(json)
+    val obj = JsonReader.read(jsonWithTabFF)
     obj shouldBe JsonObject(JsonBoolean("exists", false))
   }
 

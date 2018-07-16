@@ -36,4 +36,21 @@ object DebugMacro {
 
     reify { println(paramReprExpr.splice + " = " + param.splice) }
   }
+
+  def listMembers[T](obj: T): Unit = macro listMembers_impl[T]
+
+  def listMembers_impl[T](c: Context)(obj: c.Expr[T]): c.Expr[Unit] = {
+
+    import c.universe._
+
+    val typeRef = weakTypeOf[T]
+    val list = typeRef.members.filter(m => m.isPublic && !m.isAbstract && !m.isConstructor && m.isMethod)
+      .map(_.name)
+      .foldLeft("")(_ + _)
+
+    val reprTree = Literal(Constant(list))
+    val reprExpr = c.Expr[String](reprTree)
+
+    reify { println(reprExpr.splice) }
+  }
 }

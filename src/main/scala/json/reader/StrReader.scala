@@ -1,4 +1,4 @@
-package json.rdr
+package json.reader
 import json.exceptions.{JsonException, ReadPastEndOfElementException, UnrecognisedEscapeSequenceException}
 import json.{JsonElement, JsonString}
 
