@@ -1,5 +1,5 @@
-import json.{JsonBoolean, JsonNull, JsonNumber}
-import json.writer.{JsonWriter, WriteContext}
+import json._
+import json.writer.{DefaultWriteContext, JsonWriter, WriteContext}
 import org.scalatest.{FlatSpec, Matchers}
 
 /**
@@ -42,5 +42,31 @@ class WriterTests extends FlatSpec with Matchers {
     val neg = JsonNumber(-100)
     val negResult = JsonWriter.write(DefaultWriteContext())(neg)
     negResult shouldBe "-100"
+  }
+
+  it should "write a string with escaped control characters" in {
+    val string = JsonString("ABCDE\t100.00\r\nLine 2")
+    val result = JsonWriter.write(DefaultWriteContext())(string)
+    result shouldBe "ABCDE\\t100.00\\r\\nLine 2"
+  }
+
+  it should "write the identifier of a value if one is supplied" in {
+
+    val field = JsonNumber("id", 1000)
+    val result = JsonWriter.write(DefaultWriteContext())(field)
+    result shouldBe """"id":1000"""
+
+    val prettyResult = JsonWriter.write(WriteContext(new StringBuilder, indent = true))(field)
+    prettyResult shouldBe """"id": 1000"""
+  }
+
+  it should "write an empty object" in {
+    val obj = JsonObject()
+    val result = JsonWriter.write(DefaultWriteContext())(obj)
+    result shouldBe "{}"
+  }
+
+  it should "write the fields of an object" in {
+
   }
 }
