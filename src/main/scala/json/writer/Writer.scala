@@ -8,4 +8,9 @@ import json.JsonElement
 abstract class Writer {
 
   def write(context: WriteContext)(element: JsonElement): WriteContext
+
+  def writeComma(context: WriteContext): Unit = {
+    context.write(",")
+    if (context.indent) context.write(" ")
+  }
 }

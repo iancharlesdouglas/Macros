@@ -15,14 +15,27 @@ class ValueWriter extends Writer {
       case n: JsonNumber => context.write(n.value.toString())
       case s: JsonString => writeString(s.value, context)
       case o: JsonObject => writeObject(o, context)
+      case a: JsonArray => writeArray(a, context)
     }
+  }
+
+  def writeArray(array: JsonArray, context: WriteContext): WriteContext = {
+    context.write("[")
+    array.elements.zipWithIndex.foreach { elIdx =>
+      val (element, index) = elIdx
+      write(context)(element)
+      if (index < array.elements.size - 1) writeComma(context)
+    }
+    context.write("]")
   }
 
   def writeObject(obj: JsonObject, context: WriteContext): WriteContext = {
     context.write("{")
-    obj.elements.zipWithIndex.foreach( elIdx => {
-
-    })
+    obj.elements.zipWithIndex.foreach { elIdx =>
+      val (element, index) = elIdx
+      write(context)(element)
+      if (index < obj.elements.size - 1) writeComma(context)
+    }
     context.write("}")
   }
 
@@ -37,6 +50,7 @@ class ValueWriter extends Writer {
   }
 
   def writeString(value: String, context: WriteContext, position: Int = 0): WriteContext = {
+    if (position == 0) context.write("\"")
     if (position < value.length) {
       context.builder.append(value.charAt(position) match {
         case '\n' => "\\n"
@@ -49,6 +63,6 @@ class ValueWriter extends Writer {
       })
       writeString(value, context, position + 1)
     } else
-      context
+      context.write("\"")
   }
 }
