@@ -1,5 +1,4 @@
-import DebugMacro._
+val d = BigDecimal(0.0)
 
-case class Person(name: String, id: Integer)
+d.toBigInt()
 
-listMembers(new Person("Ian", 100))

@@ -3,7 +3,7 @@
   */
 
 import json._
-import json.exceptions.UnrecognisedRootElementException
+import json.exceptions.{ReadPastEndOfElementException, UnrecognisedRootElementException}
 import json.reader.JsonReader
 import org.scalatest.{FlatSpec, Matchers}
 
@@ -171,5 +171,12 @@ class ObjectReaderTests extends FlatSpec with Matchers {
       val obj = JsonReader.read(json)
     }
     thrown.getMessage shouldBe "Character: @"
+  }
+
+  it should "throw an exception if the fields of a document are malformed" in {
+    val json = """{"id": "One}"""
+    val thrown = intercept[ReadPastEndOfElementException] {
+      val obj = JsonReader.read(json)
+    }
   }
 }

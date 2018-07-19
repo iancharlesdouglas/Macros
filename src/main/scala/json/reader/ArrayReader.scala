@@ -13,9 +13,9 @@ class ArrayReader extends Reader {
 
   def readBody(json: String, position: Integer, jsonArray: JsonArray): (JsonArray, Integer) = {
 
-    if (position == json.length)
+    /*if (position  == json.length)
       (jsonArray, position)
-    else {
+    else {*/
       json.charAt(position) match {
         case chr if whitespace(chr) => readBody(json, position + 1, jsonArray)
         case ']' => (jsonArray, position + 1)
@@ -46,6 +46,6 @@ class ArrayReader extends Reader {
           jsonArray.elements += number
           readBody(json, newPosition, jsonArray)
       }
-    }
+    //}
   }
 }

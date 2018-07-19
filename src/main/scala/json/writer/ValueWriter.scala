@@ -12,7 +12,7 @@ class ValueWriter extends Writer {
       case n: JsonNull => context.write("null")
       case b: JsonBoolean if b.value => context.write("true")
       case b: JsonBoolean if !b.value => context.write("false")
-      case n: JsonNumber => context.write(n.value.toString())
+      case n: JsonNumber => writeNumber(n.value, context)
       case s: JsonString => writeString(s.value, context)
       case o: JsonObject => writeObject(o, context)
       case a: JsonArray => writeArray(a, context)
@@ -64,5 +64,12 @@ class ValueWriter extends Writer {
       writeString(value, context, position + 1)
     } else
       context.write("\"")
+  }
+
+  def writeNumber(value: BigDecimal, context: WriteContext): WriteContext = {
+    if (value != null && value.toBigInt() == value)
+      context.write(value.toBigInt().toString())
+    else
+      context.write(value.toString())
   }
 }

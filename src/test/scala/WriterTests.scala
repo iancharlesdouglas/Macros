@@ -34,7 +34,7 @@ class WriterTests extends FlatSpec with Matchers {
 
     val intFrac = JsonNumber(1.0)
     val intResult = JsonWriter.write(DefaultWriteContext())(intFrac)
-    intResult shouldBe "1.0"
+    intResult shouldBe "1"
 
     val intPure = JsonNumber(1)
     val intPureRes = JsonWriter.write(DefaultWriteContext())(intPure)
@@ -46,9 +46,9 @@ class WriterTests extends FlatSpec with Matchers {
   }
 
   it should "write a string with escaped control characters" in {
-    val string = JsonString("ABCDE\t100.00\r\nLine 2")
+    val string = JsonString("ABCDE\t100.00\r\nLine 2\fLine 3\b\\Line 4")
     val result = JsonWriter.write(DefaultWriteContext())(string)
-    result shouldBe "\"ABCDE\\t100.00\\r\\nLine 2\""
+    result shouldBe "\"ABCDE\\t100.00\\r\\nLine 2\\fLine 3\\b\\Line 4\""
   }
 
   it should "write the identifier of a value if one is supplied" in {
@@ -96,10 +96,10 @@ class WriterTests extends FlatSpec with Matchers {
     result shouldBe "[[1,2],3]"
   }
 
-  it should "write an read a complex object symmetrically" in {
+  it should "write and read a complex object symmetrically" in {
     val json = """{"id":1000,"name":"One","deals":[{"id":10101,"price":100000},{"id":10011,"price":200000}],"active":true,"parent":null}"""
-    val read = JsonReader.read(json)
-    val written = JsonWriter.write(DefaultWriteContext())(read)
-    written shouldBe json
+    val readIn = JsonReader.read(json)
+    val writtenOut = JsonWriter.write(DefaultWriteContext())(readIn)
+    writtenOut shouldBe json
   }
 }
