@@ -1,10 +1,20 @@
+import json.JsonString
+
 import language.experimental.macros
 import reflect.macros.whitebox.Context
-
+//import scala.reflect.runtime.universe._
 /**
   * Created by Ian on 26/06/2018.
   */
 object DebugMacro {
+
+  def jsStr(str: String): JsonString = macro jsStr_impl
+
+  def jsStr_impl(c: Context)(str: c.Expr[String]) = {
+    import c.universe._
+    q"json.JsonString($str)"
+    //q"json.writer.JsonWriter.write(json.writer.WriteContext(new StringBuilder()))(json.JsonString($str))"
+  }
 
   def hello(): Unit = macro hello_impl
 

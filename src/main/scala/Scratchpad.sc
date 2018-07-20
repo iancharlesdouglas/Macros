@@ -1,4 +1,3 @@
-val d = BigDecimal(0.0)
+import DebugMacro._
 
-d.toBigInt()
-
+jsStr("xss")
