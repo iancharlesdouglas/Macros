@@ -124,6 +124,26 @@ class ObjectReaderTests extends FlatSpec with Matchers {
     objForUnsgn shouldBe JsonObject(JsonNumber("number", BigDecimal(123)))
   }
 
+  it should "throw an exception if a number is invalid" in {
+    val json = """{"number": X}"""
+    val thrown = intercept[NumberFormatException] {
+      JsonReader.read(json)
+    }
+  }
+
+  it should "throw an exception for a malformed object" in {
+    val json = """{"number: 1"""
+    val thrown = intercept[ReadPastEndOfElementException] {
+      JsonReader.read(json)
+    }
+  }
+
+  it should "throw an exception for an incorrect exponent sign" in {
+    val json = """{number: 1.23e/2}"""
+    intercept[NumberFormatException] {
+      JsonReader.read(json)
+    }
+  }
   it should "read a realistically complex object" in {
 
     val json =
