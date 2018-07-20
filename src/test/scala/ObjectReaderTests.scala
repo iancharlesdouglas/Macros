@@ -3,7 +3,7 @@
   */
 
 import json._
-import json.exceptions.{ReadPastEndOfElementException, UnrecognisedRootElementException}
+import json.exceptions.{JsonException, ReadPastEndOfElementException, UnrecognisedEscapeSequenceException, UnrecognisedRootElementException}
 import json.reader.JsonReader
 import org.scalatest.{FlatSpec, Matchers}
 
@@ -126,21 +126,21 @@ class ObjectReaderTests extends FlatSpec with Matchers {
 
   it should "throw an exception if a number is invalid" in {
     val json = """{"number": X}"""
-    val thrown = intercept[NumberFormatException] {
+    intercept[NumberFormatException] {
       JsonReader.read(json)
     }
   }
 
   it should "throw an exception for a malformed object" in {
     val json = """{"number: 1"""
-    val thrown = intercept[ReadPastEndOfElementException] {
+    intercept[ReadPastEndOfElementException] {
       JsonReader.read(json)
     }
   }
 
   it should "throw an exception for an incorrect exponent sign" in {
     val json = """{number: 1.23e/2}"""
-    intercept[NumberFormatException] {
+    intercept[JsonException] {
       JsonReader.read(json)
     }
   }
