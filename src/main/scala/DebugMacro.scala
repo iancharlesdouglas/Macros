@@ -1,4 +1,4 @@
-import json.JsonString
+package json
 
 import language.experimental.macros
 import reflect.macros.whitebox.Context
@@ -8,12 +8,29 @@ import reflect.macros.whitebox.Context
   */
 object DebugMacro {
 
-  def jsStr(str: String): JsonString = macro jsStr_impl
+  def jsStr(str: String): String/*JsonString*/ = macro jsStr_impl
 
   def jsStr_impl(c: Context)(str: c.Expr[String]) = {
     import c.universe._
-    q"json.JsonString($str)"
-    //q"json.writer.JsonWriter.write(json.writer.WriteContext(new StringBuilder()))(json.JsonString($str))"
+    //q"json.JsonString($str)"
+    q"json.writer.JsonWriter.write(json.writer.DefaultWriteContext())(json.JsonString($str))"
+  }
+
+  def printMembers[T]: String = macro printMembers_impl[T]
+
+  def printMembers_impl[T](c: Context): c.Expr[String] = {
+    import c.universe._
+
+    val tpe = weakTypeOf[T]
+    val typeExpr = q"val t: ${tpe.getClass.getName}"
+    typeExpr.
+    val mems = tpe.members
+    val fields = tpe.members.collect {
+      case field if field.isMethod && field.asMethod.isCaseAccessor => field.name.toTermName.toString
+    }
+    //reify { println(fields) }
+    val members = fields.foldLeft("")(_ + _)
+    c.Expr(q"$members")
   }
 
   def hello(): Unit = macro hello_impl
