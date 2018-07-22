@@ -1,7 +1,7 @@
 package json
 
 import language.experimental.macros
-import reflect.macros.whitebox.Context
+import reflect.macros.blackbox.Context
 //import scala.reflect.runtime.universe._
 /**
   * Created by Ian on 26/06/2018.
@@ -16,14 +16,16 @@ object DebugMacro {
     q"json.writer.JsonWriter.write(json.writer.DefaultWriteContext())(json.JsonString($str))"
   }
 
-  def printMembers[T]: String = macro printMembers_impl[T]
+  def printMembers[T](obj: T): Any/*String*/ = macro printMembers_impl[T]
 
-  def printMembers_impl[T](c: Context): c.Expr[String] = {
+  def printMembers_impl[T: c.WeakTypeTag](c: Context)(obj: c.Expr[T]) = {//: c.Expr[String] = {
     import c.universe._
-
+    val tt = weakTypeTag[T]
+    val tm = tt.tpe.members
+    val fs = tt.tpe.members.collect { case f if f.isMethod && f.asMethod.isCaseAccessor => f.name.toTermName.toString }
     val tpe = weakTypeOf[T]
     val typeExpr = q"val t: ${tpe.getClass.getName}"
-    typeExpr.
+
     val mems = tpe.members
     val fields = tpe.members.collect {
       case field if field.isMethod && field.asMethod.isCaseAccessor => field.name.toTermName.toString

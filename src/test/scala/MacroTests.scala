@@ -8,7 +8,8 @@ class MacroTests extends FlatSpec with Matchers {
 
   "Macro" should "x" in {
     case class Customer(val id: Int, name: String)
-    val members = printMembers[Customer]
+    val customer = Customer(1, "ACME Corp.")
+    val members = printMembers(customer)
     val x = 1
   }
 }
