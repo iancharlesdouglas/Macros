@@ -10,8 +10,9 @@ class MacroTests extends FlatSpec with Matchers {
 
     jsStr("xxx")
 
-    case class Customer(val id: Int, name: String)
-    val customer = new Customer(1, "ACME Corp.")
+    case class City(id: Int, name: String)
+    case class Customer(val id: Int, name: String, city: City)
+    val customer = Customer(1, "ACME Corp.", City(1, "London"))
     val members = printMembers(customer)
     val x = 1
   }

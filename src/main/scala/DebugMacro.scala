@@ -19,9 +19,39 @@ object DebugMacro {
     q"json.writer.JsonWriter.write($defaultWriter)(json.JsonObject(..$mems))"
   }
 
-  def printMembers[T](obj: T): Any = macro printMembers_impl[T]
+  def printMembers[T](obj: T): String = macro printMembers_impl[T]
 
-  def printMembers_impl[T: c.WeakTypeTag](c: Context)(obj: c.Expr[T]) = {
+  def printMembers_impl[T: c.WeakTypeTag](c: Context)(obj: c.Expr[T]) : c.Tree = {
+
+    import c.universe._
+
+    /*val tpe = weakTypeOf[T]
+
+    val fields = tpe.members.collect {
+      case field if field.isMethod && field.asMethod.isCaseAccessor =>
+        (field.name.toTermName.toString, field.typeSignature.resultType.typeSymbol.name.toString, field.typeSignature.resultType)
+    }
+
+    val stmts = fields.map { field =>
+      val (fieldName, fieldTypeName, fieldType) = field
+      val fieldRef = TermName(fieldName)
+      val id = q"$fieldName"
+      val extr = q"$obj.$fieldRef"
+      fieldTypeName match {
+        case "Int" | "Integer" | "Long" => q"json.JsonNumber($id, $extr)"
+        case "String" => q"""json.JsonString($id, $extr)"""
+        case "Boolean" => q"json.JsonBoolean($id, $extr)"
+        case "Null" => q"json.JsonNull($id)"
+        case _ => printMembers(extr)
+      }
+    }*/
+
+    val stmts = getMembers(c)(obj)
+    val res = q"json.writer.JsonWriter.write(json.writer.DefaultWriteContext())(json.JsonObject(..$stmts))"
+    res
+  }
+
+  def getMembers[T: c.WeakTypeTag](c: Context)(obj: c.Expr[T]): Iterable[c.Tree] = {
 
     import c.universe._
 
@@ -29,37 +59,28 @@ object DebugMacro {
 
     val fields = tpe.members.collect {
       case field if field.isMethod && field.asMethod.isCaseAccessor =>
-        (field.name.toTermName.toString, field.typeSignature.resultType.typeSymbol.name.toString)
+        (field.name.toTermName.toString, field.typeSignature.resultType.typeSymbol.name.toString, field.typeSignature.resultType.typeSymbol)
     }
 
-
-    val idRef = TermName("id")
-    val selTree = q"$obj.$idRef"
-    //val selTree = q"$obj.$idRef"
-//    val selTree = tq"$obj.TermName($idRef)"
-    //val selTree = q"""scala.reflect.runtime.universe.Select($obj, scala.reflect.runtime.universe.TermName("id"))"""
-    //val selTree = Select(Ident(TermName("$obj")), TermName("id"))
-
-//    val stmts = List(q"json.JsonNumber($selTree)")
-//val qq = Quasiquote(StringContext("$obj", ".", "id"))
-//    val stmts = List(q"json.JsonNumber($selTree)")
-    /*val objRef = q"$obj"*/
-
-    val stmts = fields.map { field =>
-      val (fieldName, fieldType) = field
+    fields.map { field =>
+      val (fieldName, fieldTypeName, fieldType) = field
       val fieldRef = TermName(fieldName)
       val id = q"$fieldName"
       val extr = q"$obj.$fieldRef"
-      fieldType match {
+      fieldTypeName match {
         case "Int" | "Integer" | "Long" => q"json.JsonNumber($id, $extr)"
         case "String" => q"""json.JsonString($id, $extr)"""
         case "Boolean" => q"json.JsonBoolean($id, $extr)"
         case "Null" => q"json.JsonNull($id)"
+        case _ => {
+
+          //val ConstantType(Constant(tpe: Type)) = extr.tpe
+          //q"val childStmts = getMembers[$tpe]($c)(${c.Expr(extr)}"
+          val childStmts = getMembers(c)(c.Expr(extr))
+          q"json.JsonObject(..$childStmts)"
+        }
       }
     }
-
-    val res = q"json.writer.JsonWriter.write(json.writer.DefaultWriteContext())(json.JsonObject(..$stmts))"
-    res
   }
 
   def hello(): Unit = macro hello_impl
