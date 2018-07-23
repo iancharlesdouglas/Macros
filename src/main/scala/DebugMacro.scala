@@ -77,11 +77,21 @@ object DebugMacro {
       val fieldRef = TermName(fieldName)
       val id = q"$fieldName"
       val extr = q"$obj.$fieldRef"
+      //val x = fieldType.typeSignature
+      //WeakTypeTag(x, )
+      //val xx = x.members
       fieldTypeName match {
         case "Int" | "Integer" | "Long" | "Double" | "Float" => q"json.JsonNumber($id, $extr)"
         case "String" => q"""json.JsonString($id, $extr)"""
         case "Boolean" => q"json.JsonBoolean($id, $extr)"
         case "Null" => q"json.JsonNull($id)"
+        case "Option" => {
+          q"""$extr match {
+             case None => json.JsonNull($id)
+             case Some(Int) | Some(Long) => json.JsonNumber($id, $extr.get)
+             case Some(b: Boolean) => json.JsonBoolean($id, $extr.get)
+             }"""
+        }
         case _ => {
           val childStmts = getMems(c)(fieldType.typeSignature, c.Expr(extr))
           q"json.JsonObject($id, ..$childStmts)"
