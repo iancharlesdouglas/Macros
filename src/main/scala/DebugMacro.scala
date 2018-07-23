@@ -19,9 +19,9 @@ object DebugMacro {
     q"json.writer.JsonWriter.write($defaultWriter)(json.JsonObject(..$mems))"
   }
 
-  def printMembers[T](obj: T): String = macro printMembers_impl[T]
+  def toJson[T](obj: T): String = macro toJson_impl[T]
 
-  def printMembers_impl[T: c.WeakTypeTag](c: Context)(obj: c.Expr[T]) : c.Tree = {
+  def toJson_impl[T: c.WeakTypeTag](c: Context)(obj: c.Expr[T]) : c.Tree = {
 
     import c.universe._
 
@@ -46,7 +46,7 @@ object DebugMacro {
       }
     }*/
 
-    val stmts = getMembers(c)(obj)
+    val stmts = getMems(c)(weakTypeOf[T], obj)
     val res = q"json.writer.JsonWriter.write(json.writer.DefaultWriteContext())(json.JsonObject(..$stmts))"
     res
   }
@@ -78,6 +78,34 @@ object DebugMacro {
           //q"val childStmts = getMembers[$tpe]($c)(${c.Expr(extr)}"
           val childStmts = getMembers(c)(c.Expr(extr))
           q"json.JsonObject(..$childStmts)"
+        }
+      }
+    }
+  }
+
+  def getMems(c: Context)(tpe: c.universe.Type, obj: c.Expr[Any]): Iterable[c.Tree] ={
+    import c.universe._
+
+    val fields = tpe.members.collect {
+      case field if field.isMethod && field.asMethod.isCaseAccessor =>
+        (field.name.toTermName.toString,
+          field.typeSignature.resultType.typeSymbol.name.toString,
+          field.typeSignature.resultType.typeSymbol)
+    }.toList.reverse
+
+    fields.map { field =>
+      val (fieldName, fieldTypeName, fieldType) = field
+      val fieldRef = TermName(fieldName)
+      val id = q"$fieldName"
+      val extr = q"$obj.$fieldRef"
+      fieldTypeName match {
+        case "Int" | "Integer" | "Long" => q"json.JsonNumber($id, $extr)"
+        case "String" => q"""json.JsonString($id, $extr)"""
+        case "Boolean" => q"json.JsonBoolean($id, $extr)"
+        case "Null" => q"json.JsonNull($id)"
+        case _ => {
+          val childStmts = getMems(c)(fieldType.typeSignature, c.Expr(extr))
+          q"json.JsonObject($id, ..$childStmts)"
         }
       }
     }
