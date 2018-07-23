@@ -25,30 +25,9 @@ object DebugMacro {
 
     import c.universe._
 
-    /*val tpe = weakTypeOf[T]
-
-    val fields = tpe.members.collect {
-      case field if field.isMethod && field.asMethod.isCaseAccessor =>
-        (field.name.toTermName.toString, field.typeSignature.resultType.typeSymbol.name.toString, field.typeSignature.resultType)
-    }
-
-    val stmts = fields.map { field =>
-      val (fieldName, fieldTypeName, fieldType) = field
-      val fieldRef = TermName(fieldName)
-      val id = q"$fieldName"
-      val extr = q"$obj.$fieldRef"
-      fieldTypeName match {
-        case "Int" | "Integer" | "Long" => q"json.JsonNumber($id, $extr)"
-        case "String" => q"""json.JsonString($id, $extr)"""
-        case "Boolean" => q"json.JsonBoolean($id, $extr)"
-        case "Null" => q"json.JsonNull($id)"
-        case _ => printMembers(extr)
-      }
-    }*/
-
     val stmts = getMems(c)(weakTypeOf[T], obj)
-    val res = q"json.writer.JsonWriter.write(json.writer.DefaultWriteContext())(json.JsonObject(..$stmts))"
-    res
+
+    q"json.writer.JsonWriter.write(json.writer.DefaultWriteContext())(json.JsonObject(..$stmts))"
   }
 
   def getMembers[T: c.WeakTypeTag](c: Context)(obj: c.Expr[T]): Iterable[c.Tree] = {
@@ -99,7 +78,7 @@ object DebugMacro {
       val id = q"$fieldName"
       val extr = q"$obj.$fieldRef"
       fieldTypeName match {
-        case "Int" | "Integer" | "Long" => q"json.JsonNumber($id, $extr)"
+        case "Int" | "Integer" | "Long" | "Double" | "Float" => q"json.JsonNumber($id, $extr)"
         case "String" => q"""json.JsonString($id, $extr)"""
         case "Boolean" => q"json.JsonBoolean($id, $extr)"
         case "Null" => q"json.JsonNull($id)"
