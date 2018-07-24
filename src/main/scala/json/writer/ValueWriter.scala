@@ -50,20 +50,24 @@ class ValueWriter extends Writer {
   }
 
   def writeString(value: String, context: WriteContext, position: Int = 0): WriteContext = {
-    if (position == 0) context.write("\"")
-    if (position < value.length) {
-      context.builder.append(value.charAt(position) match {
-        case '\n' => "\\n"
-        case '\r' => "\\r"
-        case '\t' => "\\t"
-        case '\f' => "\\f"
-        case '\b' => "\\b"
-        case '\\' => "\\"
-        case c => c
-      })
-      writeString(value, context, position + 1)
-    } else
-      context.write("\"")
+    if (value != null) {
+      if (position == 0) context.write("\"")
+      if (position < value.length) {
+        context.builder.append(value.charAt(position) match {
+          case '\n' => "\\n"
+          case '\r' => "\\r"
+          case '\t' => "\\t"
+          case '\f' => "\\f"
+          case '\b' => "\\b"
+          case '\\' => "\\"
+          case c => c
+        })
+        writeString(value, context, position + 1)
+      } else
+        context.write("\"")
+    } else {
+      context.write("null")
+    }
   }
 
   def writeNumber(value: BigDecimal, context: WriteContext): WriteContext = {

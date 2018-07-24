@@ -51,6 +51,17 @@ class WriterTests extends FlatSpec with Matchers {
     result shouldBe "\"ABCDE\\t100.00\\r\\nLine 2\\fLine 3\\b\\Line 4\""
   }
 
+  it should "write the value 'null' for a string whose value is null" in {
+    val result = JsonWriter.write(DefaultWriteContext())(JsonString(null))
+    result shouldBe "null"
+  }
+
+  it should "write the value of a character as a single-character string" in {
+    val char = 'a'
+    val result = JsonWriter.write(DefaultWriteContext())(JsonString(char))
+    result shouldBe "\"a\""
+  }
+
   it should "write the identifier of a value if one is supplied" in {
 
     val field = JsonNumber("id", 1000)
