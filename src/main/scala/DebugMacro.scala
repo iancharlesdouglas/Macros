@@ -74,27 +74,28 @@ object DebugMacro {
 
     fields.map { field =>
       val (fieldName, fieldTypeName, fieldType) = field
-      val fieldRef = TermName(fieldName)
+      val fieldTerm = TermName(fieldName)
       val id = q"$fieldName"
-      val extr = q"$obj.$fieldRef"
+      val value = q"$obj.$fieldTerm"
       fieldTypeName match {
-        case "Int" | "Integer" | "Long" | "Double" | "Float" | "Short" | "Byte" => q"json.JsonNumber($id, $extr)"
-        case "String" => q"""json.JsonString($id, $extr)"""
-        case "Boolean" => q"json.JsonBoolean($id, $extr)"
+        case "Int" | "Integer" | "Long" | "Double" | "Float" | "Short" | "Byte" => q"json.JsonNumber($id, $value)"
+        case "String" => q"""json.JsonString($id, $value)"""
+        case "Boolean" => q"json.JsonBoolean($id, $value)"
         case "Null" => q"json.JsonNull($id)"
         case "Option" => {
-          q"""$extr match {
+          q"""$value match {
              case None => json.JsonNull($id)
-             case Some(x) if x.isInstanceOf[Short] => json.JsonNumber($id, $extr.get)
-             case Some(x) if x.isInstanceOf[Int] => json.JsonNumber($id, $extr.get)
-             case Some(x) if x.isInstanceOf[Long] => json.JsonNumber($id, $extr.get)
-             case Some(x) if x.isInstanceOf[Double] => json.JsonNumber($id, $extr.get)
-             case Some(x) if x.isInstanceOf[Float] => json.JsonNumber($id, $extr.get)
-             case Some(x) if x.isInstanceOf[Byte] => json.JsonNumber($id, $extr.get)
+             case Some(x) if x.isInstanceOf[Short] => json.JsonNumber($id, $value.get)
+             case Some(x) if x.isInstanceOf[Int] => json.JsonNumber($id, $value.get)
+             case Some(x) if x.isInstanceOf[Long] => json.JsonNumber($id, $value.get)
+             case Some(x) if x.isInstanceOf[Double] => json.JsonNumber($id, $value.get)
+             case Some(x) if x.isInstanceOf[Float] => json.JsonNumber($id, $value.get)
+             case Some(x) if x.isInstanceOf[Byte] => json.JsonNumber($id, $value.get)
              }"""
         }
+        case "Array" => q"json.JsonArray($id, ..$value)"
         case _ => {
-          val childStmts = getMems(c)(fieldType.typeSignature, c.Expr(extr))
+          val childStmts = getMems(c)(fieldType.typeSignature, c.Expr(value))
           q"json.JsonObject($id, ..$childStmts)"
         }
       }
