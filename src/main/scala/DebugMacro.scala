@@ -88,8 +88,12 @@ object DebugMacro {
         case "Option" => {
           q"""$extr match {
              case None => json.JsonNull($id)
-             case Some(Int) | Some(Long) => json.JsonNumber($id, $extr.get)
-             case Some(b: Boolean) => json.JsonBoolean($id, $extr.get)
+             case Some(x) if x.isInstanceOf[Int] => json.JsonNumber($id, $extr.get)
+             case Some(x) if x.isInstanceOf[Long] => json.JsonNumber($id, $extr.get)
+             case Some(x) if x.isInstanceOf[Double] => json.JsonNumber($id, $extr.get)
+             case Some(x) if x.isInstanceOf[Float] => json.JsonNumber($id, $extr.get)
+             case Some(x) if x.isInstanceOf[Short] => json.JsonNumber($id, $extr.get)
+             case Some(x) if x.isInstanceOf[Byte] => json.JsonNumber($id, $extr.get)
              }"""
         }
         case _ => {
