@@ -25,44 +25,13 @@ object DebugMacro {
 
     import c.universe._
 
-    val stmts = getMems(c)(weakTypeOf[T], obj)
+    val stmts = getObjectMembers(c)(weakTypeOf[T], obj)
 
     q"json.writer.JsonWriter.write(json.writer.DefaultWriteContext())(json.JsonObject(..$stmts))"
   }
 
-  def getMembers[T: c.WeakTypeTag](c: Context)(obj: c.Expr[T]): Iterable[c.Tree] = {
+  def getObjectMembers(c: Context)(tpe: c.universe.Type, obj: c.Expr[Any]): Iterable[c.Tree] ={
 
-    import c.universe._
-
-    val tpe = weakTypeOf[T]
-
-    val fields = tpe.members.collect {
-      case field if field.isMethod && field.asMethod.isCaseAccessor =>
-        (field.name.toTermName.toString, field.typeSignature.resultType.typeSymbol.name.toString, field.typeSignature.resultType.typeSymbol)
-    }
-
-    fields.map { field =>
-      val (fieldName, fieldTypeName, fieldType) = field
-      val fieldRef = TermName(fieldName)
-      val id = q"$fieldName"
-      val extr = q"$obj.$fieldRef"
-      fieldTypeName match {
-        case "Int" | "Integer" | "Long" => q"json.JsonNumber($id, $extr)"
-        case "String" => q"""json.JsonString($id, $extr)"""
-        case "Boolean" => q"json.JsonBoolean($id, $extr)"
-        case "Null" => q"json.JsonNull($id)"
-        case _ => {
-
-          //val ConstantType(Constant(tpe: Type)) = extr.tpe
-          //q"val childStmts = getMembers[$tpe]($c)(${c.Expr(extr)}"
-          val childStmts = getMembers(c)(c.Expr(extr))
-          q"json.JsonObject(..$childStmts)"
-        }
-      }
-    }
-  }
-
-  def getMems(c: Context)(tpe: c.universe.Type, obj: c.Expr[Any]): Iterable[c.Tree] ={
     import c.universe._
 
     val fields = tpe.members.collect {
@@ -93,14 +62,27 @@ object DebugMacro {
              case Some(x) if x.isInstanceOf[Byte] => json.JsonNumber($id, $value.get)
              }"""
         }
-        case "Array" => q"json.JsonArray($id, ..$value)"
+        case "Array" => {
+          val values = q"$value.map(json.JsonNumber(_))"
+          q"""$value match {
+              case _: Array[Short] => new json.JsonArray($id, ..$values)
+              case _: Array[Int] => new json.JsonArray($id, ..$values)
+              case _: Array[Long] => new json.JsonArray($id, ..$values)
+              case _: Array[Double] => new json.JsonArray($id, ..$values)
+              case _: Array[Float] => new json.JsonArray($id, ..$values)
+              case _: Array[Byte] => new json.JsonArray($id, ..$values)
+             }
+           """
+        }
         case _ => {
-          val childStmts = getMems(c)(fieldType.typeSignature, c.Expr(value))
-          q"json.JsonObject($id, ..$childStmts)"
+          val members = getObjectMembers(c)(fieldType.typeSignature, c.Expr(value))
+          q"json.JsonObject($id, ..$members)"
         }
       }
     }
   }
+
+  //def getArrayElements(c: Context)(array: c.Expr[Array[T]])
 
   def hello(): Unit = macro hello_impl
 
