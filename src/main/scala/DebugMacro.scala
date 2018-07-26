@@ -70,14 +70,23 @@ object DebugMacro {
                }}"""
         case "Array" => {
           val typeArg = fieldTypeArg.get.typeSymbol.name.toString
-          typeArg match {
-            case "Int" | "Integer" | "Long" | "Double" | "Float" | "Short" | "Byte" =>
-              q"new json.JsonArray($id, $value.map(v => json.JsonNumber(v)))"
+          val values = typeArg match {
+            case "Int" | "Integer" | "Long" | "Double" | "Float" | "Short" | "Byte" => q"$value.map(json.JsonNumber(_))"
+            case "String" => q"$value.map(json.JsonString(_))"
+            case "Boolean" => q"$value.map(json.JsonBoolean(_))"
+            case _ =>
+              //q"$value.map(o => ${getObjectMembers(c)(fieldTypeArg.get, c.Expr(_))}"
+              val objects = q"$value.map(o => toJson(o))"
+              q"$objects.map(json.JsonObject(_))"
           }
+          q"new json.JsonArray($id, $values)"
         }
         case _ => {
           val members = getObjectMembers(c)(fieldType.typeSignature, c.Expr(value))
-          q"json.JsonObject($id, ..$members)"
+          if (!fieldName.isEmpty)
+            q"json.JsonObject($id, ..$members)"
+          else
+            q"json.JsonObject(..$members)"
         }
       }
     }
