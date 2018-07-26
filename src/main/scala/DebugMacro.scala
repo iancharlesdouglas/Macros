@@ -35,14 +35,18 @@ object DebugMacro {
     import c.universe._
 
     val fields = tpe.members.collect {
-      case field if field.isMethod && field.asMethod.isCaseAccessor =>
+      case field if field.isMethod && field.asMethod.isCaseAccessor => {
+        val er = field.typeSignature.erasure
+        val ers = er.resultType
+        val ern = ers.typeArgs
         (field.name.toTermName.toString,
-          field.typeSignature.resultType.typeSymbol.name.toString,
-          field.typeSignature.resultType.typeSymbol)
+          field.typeSignature.erasure.resultType.typeSymbol.name.toString,
+          field.typeSignature.erasure.resultType.typeSymbol,
+          field.typeSignature.erasure.resultType.typeArgs.headOption) }
     }.toList.reverse
 
     fields.map { field =>
-      val (fieldName, fieldTypeName, fieldType) = field
+      val (fieldName, fieldTypeName, fieldType, fieldTypeArg) = field
       val fieldTerm = TermName(fieldName)
       val id = q"$fieldName"
       val value = q"$obj.$fieldTerm"
@@ -51,28 +55,25 @@ object DebugMacro {
         case "String" => q"""json.JsonString($id, $value)"""
         case "Boolean" => q"json.JsonBoolean($id, $value)"
         case "Null" => q"json.JsonNull($id)"
-        case "Option" => {
-          q"""$value match {
+        case "Option" =>
+          q"""
+              $value match {
              case None => json.JsonNull($id)
-             case Some(x) if x.isInstanceOf[Short] => json.JsonNumber($id, $value.get)
-             case Some(x) if x.isInstanceOf[Int] => json.JsonNumber($id, $value.get)
-             case Some(x) if x.isInstanceOf[Long] => json.JsonNumber($id, $value.get)
-             case Some(x) if x.isInstanceOf[Double] => json.JsonNumber($id, $value.get)
-             case Some(x) if x.isInstanceOf[Float] => json.JsonNumber($id, $value.get)
-             case Some(x) if x.isInstanceOf[Byte] => json.JsonNumber($id, $value.get)
-             }"""
-        }
+             case Some(x) =>
+               x match {
+                 case x if x.isInstanceOf[Short] => json.JsonNumber($id, $value.get)
+                 case x if x.isInstanceOf[Int] => json.JsonNumber($id, $value.get)
+                 case x if x.isInstanceOf[Long] => json.JsonNumber($id, $value.get)
+                 case x if x.isInstanceOf[Double] => json.JsonNumber($id, $value.get)
+                 case x if x.isInstanceOf[Float] => json.JsonNumber($id, $value.get)
+                 case x if x.isInstanceOf[Byte] => json.JsonNumber($id, $value.get)
+               }}"""
         case "Array" => {
-          val values = q"$value.map(json.JsonNumber(_))"
-          q"""$value match {
-              case _: Array[Short] => new json.JsonArray($id, ..$values)
-              case _: Array[Int] => new json.JsonArray($id, ..$values)
-              case _: Array[Long] => new json.JsonArray($id, ..$values)
-              case _: Array[Double] => new json.JsonArray($id, ..$values)
-              case _: Array[Float] => new json.JsonArray($id, ..$values)
-              case _: Array[Byte] => new json.JsonArray($id, ..$values)
-             }
-           """
+          val typeArg = fieldTypeArg.get.typeSymbol.name.toString
+          typeArg match {
+            case "Int" | "Integer" | "Long" | "Double" | "Float" | "Short" | "Byte" =>
+              q"new json.JsonArray($id, $value.map(v => json.JsonNumber(v)))"
+          }
         }
         case _ => {
           val members = getObjectMembers(c)(fieldType.typeSignature, c.Expr(value))
@@ -82,6 +83,13 @@ object DebugMacro {
     }
   }
 
+  def doOption/*[T: c.TypeTag]*/(c: Context)(obj: c.Tree) : c.Tree = {
+    import c.universe._
+    val ch = obj.children;
+    //val x = weakTypeOf[T];
+    //val y = x.typeArgs;
+    null
+  }
   //def getArrayElements(c: Context)(array: c.Expr[Array[T]])
 
   def hello(): Unit = macro hello_impl

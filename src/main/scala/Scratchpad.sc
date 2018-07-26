@@ -6,14 +6,17 @@ case class City(id: Int, name: String, country: Country)
 
 case class Customer(id: Int, name: String,
                     isActive: Boolean = true,
-                    /*parentId: Option[Int] = None,
+                    parentId: Option[Long] = None,/*
                    shortVal: Option[Short] = None,
                    code: Option[String] = None,
                    city: City = null,*/
                    flags: Array[Int])
 
-val customer = Customer(1, "One", false, /*Some(2),
+val customer = Customer(2, "One", false, /*Some(2),
   None, Some("CD"),
-  City(1, "London", Country(1, "UK")), */Array(1, 3))
+  City(1, "London", Country(1, "UK")), */
+  Some(1),
+  Array(1, 2))
+
 
 toJson(customer)
