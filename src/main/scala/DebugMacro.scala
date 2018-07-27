@@ -30,6 +30,17 @@ object DebugMacro {
     q"json.writer.JsonWriter.write(json.writer.DefaultWriteContext())(json.JsonObject(..$stmts))"
   }
 
+  def processObject[T](obj: T): JsonObject = macro processObject_impl[T]
+
+  def processObject_impl[T: c.WeakTypeTag](c: Context)(obj: c.Expr[T]) : c.Tree = {
+
+    import c.universe._
+
+    val stmts = getObjectMembers(c)(weakTypeOf[T], obj)
+
+    q"json.JsonObject(..$stmts)"
+  }
+
   def getObjectMembers(c: Context)(tpe: c.universe.Type, obj: c.Expr[Any]): Iterable[c.Tree] ={
 
     import c.universe._
@@ -74,19 +85,13 @@ object DebugMacro {
             case "Int" | "Integer" | "Long" | "Double" | "Float" | "Short" | "Byte" => q"$value.map(json.JsonNumber(_))"
             case "String" => q"$value.map(json.JsonString(_))"
             case "Boolean" => q"$value.map(json.JsonBoolean(_))"
-            case _ =>
-              //q"$value.map(o => ${getObjectMembers(c)(fieldTypeArg.get, c.Expr(_))}"
-              val objects = q"$value.map(o => toJson(o))"
-              q"$objects.map(json.JsonObject(_))"
+            case _ => q"$value.map(processObject(_))"
           }
           q"new json.JsonArray($id, $values)"
         }
         case _ => {
           val members = getObjectMembers(c)(fieldType.typeSignature, c.Expr(value))
-          if (!fieldName.isEmpty)
-            q"json.JsonObject($id, ..$members)"
-          else
-            q"json.JsonObject(..$members)"
+          q"json.JsonObject($id, ..$members)"
         }
       }
     }
