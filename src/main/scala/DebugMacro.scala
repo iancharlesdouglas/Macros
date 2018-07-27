@@ -50,6 +50,10 @@ object DebugMacro {
         val er = field.typeSignature.erasure
         val ers = er.resultType
         val ern = ers.typeArgs
+        val b = if (!field.typeSignature.typeParams.isEmpty)
+          field.typeSignature.typeSymbol.typeSignature.erasure
+        else
+        null
         (field.name.toTermName.toString,
           field.typeSignature.erasure.resultType.typeSymbol.name.toString,
           field.typeSignature.erasure.resultType.typeSymbol,
