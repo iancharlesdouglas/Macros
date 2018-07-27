@@ -9,7 +9,7 @@ case class Thing(id: Int, title: Title)
 
 case class Customer(id: Int, name: String,
                     isActive: Boolean = true,
-                    parentId: Option[Long] = None,/*
+                    parentId: Option[Title] = None,/*
                    shortVal: Option[Short] = None,
                    code: Option[String] = None,
                    city: City = null,*/
@@ -18,7 +18,7 @@ case class Customer(id: Int, name: String,
 val customer = Customer(2, "One", false, /*Some(2),
   None, Some("CD"),
   City(1, "London", Country(1, "UK")), */
-  Some(1),
+  Some(Title(101)),
   Array(Thing(1, Title(1)), Thing(2, Title(2))))
 
 

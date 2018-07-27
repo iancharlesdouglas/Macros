@@ -47,17 +47,13 @@ object DebugMacro {
 
     val fields = tpe.members.collect {
       case field if field.isMethod && field.asMethod.isCaseAccessor => {
-        val er = field.typeSignature.erasure
-        val ers = er.resultType
-        val ern = ers.typeArgs
-        val b = if (!field.typeSignature.typeParams.isEmpty)
-          field.typeSignature.typeSymbol.typeSignature.erasure
-        else
-        null
         (field.name.toTermName.toString,
           field.typeSignature.erasure.resultType.typeSymbol.name.toString,
           field.typeSignature.erasure.resultType.typeSymbol,
-          field.typeSignature.erasure.resultType.typeArgs.headOption) }
+          if (field.typeSignature.resultType.typeArgs.isEmpty)
+            field.typeSignature.erasure.resultType.typeArgs.headOption
+          else
+            field.typeSignature.resultType.typeArgs.headOption) }
     }.toList.reverse
 
     fields.map { field =>
@@ -71,18 +67,17 @@ object DebugMacro {
         case "Boolean" => q"json.JsonBoolean($id, $value)"
         case "Null" => q"json.JsonNull($id)"
         case "Option" =>
-          q"""
-              $value match {
-             case None => json.JsonNull($id)
-             case Some(x) =>
-               x match {
-                 case x if x.isInstanceOf[Short] => json.JsonNumber($id, $value.get)
-                 case x if x.isInstanceOf[Int] => json.JsonNumber($id, $value.get)
-                 case x if x.isInstanceOf[Long] => json.JsonNumber($id, $value.get)
-                 case x if x.isInstanceOf[Double] => json.JsonNumber($id, $value.get)
-                 case x if x.isInstanceOf[Float] => json.JsonNumber($id, $value.get)
-                 case x if x.isInstanceOf[Byte] => json.JsonNumber($id, $value.get)
-               }}"""
+          val typeArg = fieldTypeArg.get.typeSymbol.name.toString
+          typeArg match {
+            case "Int" | "Integer" | "Long" | "Double" | "Float" | "Short" | "Byte" => q"json.JsonNumber($id, $value.get)"
+            case "String" => q"json.JsonString($id, $value.get)"
+            case "Boolean" => q"json.JsonBoolean($id, $value.get)"
+            case _ => {
+              val objVal = q"$value.get"
+              val members = getObjectMembers(c)(fieldType.typeSignature, c.Expr(objVal))
+              q"json.JsonObject($id, ..$members)"
+            }
+          }
         case "Array" => {
           val typeArg = fieldTypeArg.get.typeSymbol.name.toString
           val values = typeArg match {

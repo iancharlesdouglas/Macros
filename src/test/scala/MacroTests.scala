@@ -12,9 +12,9 @@ class MacroTests extends FlatSpec with Matchers {
 
     case class City(id: Int, name: String)
     case class Thing(id: Int)
-    case class Customer(val id: Int, status: Option[Int], name: String, isActive: Boolean,
+    case class Customer(val id: Int, status: Option[Boolean], name: String, isActive: Boolean,
                         flags: Array[Thing])// city: City)
-    val customer = Customer(1, None, "ACME Corp.", true, Array(Thing(1), Thing(2)))//City(1, "London"))
+    val customer = Customer(1, Some(true), "ACME Corp.", true, Array(Thing(1), Thing(2)))//City(1, "London"))
     val members = toJson(customer)
     val x = 1
   }
