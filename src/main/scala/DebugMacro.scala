@@ -73,8 +73,8 @@ object DebugMacro {
             case "String" => q"json.JsonString($id, $value.get)"
             case "Boolean" => q"json.JsonBoolean($id, $value.get)"
             case _ => {
-              val objVal = q"$value.get"
-              val members = getObjectMembers(c)(fieldType.typeSignature, c.Expr(objVal))
+              val objValue = q"$obj.$fieldTerm.get"
+              val members = getObjectMembers(c)(fieldTypeArg.get, c.Expr(objValue))
               q"json.JsonObject($id, ..$members)"
             }
           }
