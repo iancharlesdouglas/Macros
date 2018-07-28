@@ -5,6 +5,7 @@ package json
   */
 case class JsonBoolean(id: String, value: Boolean) extends JsonElement(id) {
 
+  override def find(fieldId: String): JsonElement = ???
 }
 
 object JsonBoolean {

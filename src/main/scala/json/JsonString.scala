@@ -6,6 +6,8 @@ package json
 case class JsonString(id: String, value: String) extends JsonElement(id) {
 
   def this(id: String, value: Char) = this(id, value.toString)
+
+  override def find(fieldId: String): JsonElement = ???
 }
 
 object JsonString {

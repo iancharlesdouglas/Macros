@@ -9,4 +9,5 @@ abstract class JsonElement(val elementId: String) {
 
   val elements = ListBuffer[JsonElement]()
 
+  def find(fieldId: String): JsonElement
 }

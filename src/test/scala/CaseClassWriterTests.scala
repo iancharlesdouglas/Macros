@@ -31,6 +31,7 @@ class CaseClassWriterTests extends FlatSpec with Matchers {
   it should "write an array of nested objects correctly" in {
 
     case class Country(name: String)
+
     case class City(id: Int, name: String, country: Country)
 
     val cities = Array(City(1, "London", Country("England")), City(2, "Aberdeen", Country("Scotland")))
@@ -117,5 +118,14 @@ class CaseClassWriterTests extends FlatSpec with Matchers {
     val jsNumbersMissing = toJson(numbersMissing)
 
     jsNumbersMissing shouldBe """{"id":2,"long":null,"short":null,"byte":null,"float":null,"double":null}"""
+  }
+
+  it should "read a simple JSON string into the fields of an object" in {
+
+    case class Country(id: Int, name: String)
+
+    val json = """{"id":1,"name":"One"}"""
+
+    val country = fromJson[Country](json)
   }
 }

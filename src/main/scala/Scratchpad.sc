@@ -23,3 +23,7 @@ toJson(customer)
 val countries = Array(Country(1, "UK"), Country(2, "Italy"))
 
 toJson(countries)
+
+val country = fromJson[Country]("""{"id":1,"name":"One"}""")
+
+country.id

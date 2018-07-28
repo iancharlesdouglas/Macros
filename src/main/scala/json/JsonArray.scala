@@ -18,6 +18,8 @@ case class JsonArray(id: String = "") extends JsonElement(id) {
       false
     }
   }
+
+  override def find(fieldId: String): JsonElement = ???
 }
 
 object JsonArray {

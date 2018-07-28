@@ -5,6 +5,7 @@ package json
   */
 case class JsonNull(id: String) extends JsonElement(id) {
 
+  override def find(fieldId: String): JsonElement = ???
 }
 
 object JsonNull {

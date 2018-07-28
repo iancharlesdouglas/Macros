@@ -18,6 +18,8 @@ case class JsonObject(id: String = "") extends JsonElement(id) {
       false
     }
   }
+
+  override def find(fieldId: String): JsonElement = elements.toList.find(_.elementId == fieldId).get
 }
 
 object JsonObject {
