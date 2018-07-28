@@ -79,21 +79,28 @@ object CaseClassWriter {
         case "Option" =>
           val typeArg = fieldTypeArg.get.typeSymbol.name.toString
           typeArg match {
-            case "Int" | "Integer" | "Long" | "Double" | "Float" | "Short" | "Byte" => q"json.JsonNumber($id, $value.get)"
+            case "Int" | "Integer" | "Long" | "Double" | "Float" | "Short" | "Byte" => q"if ($value.isDefined) json.JsonNumber($id, $value.get) else json.JsonNull($id)"
             case "String" => q"json.JsonString($id, $value.get)"
             case "Boolean" => q"json.JsonBoolean($id, $value.get)"
             case _ => {
-              val objValue = q"$obj.$fieldTerm.get"
-              val members = getObjectMembers(c)(fieldTypeArg.get, c.Expr(objValue))
-              q"json.JsonObject($id, ..$members)"
+              val optValue = q"$value.getOrElse(null)"
+              q"""
+                 if ($optValue != null)
+                   json.JsonObject($id, ..${getObjectMembers(c)(fieldTypeArg.get, c.Expr(optValue))})
+                 else
+                   json.JsonNull($id)
+               """
             }
           }
         case "Array" =>
           val values = arrayElements(c)(fieldTypeArg, value)
           q"new json.JsonArray($id, $values)"
         case _ =>
-          val members = getObjectMembers(c)(fieldType.typeSignature, c.Expr(value))
-          q"json.JsonObject($id, ..$members)"
+          //val members = getObjectMembers(c)(fieldType.typeSignature, c.Expr(value))
+          q"""if ($value == null)
+                json.JsonNull($id)
+              else
+                json.JsonObject($id, ..${getObjectMembers(c)(fieldType.typeSignature, c.Expr(value))})"""
       }
     }
   }
