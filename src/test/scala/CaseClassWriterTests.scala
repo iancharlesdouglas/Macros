@@ -47,9 +47,15 @@ class CaseClassWriterTests extends FlatSpec with Matchers {
 
     val city = City(1, null, Country(1))
 
-    val js = toJson(city)
+    val cityJs = toJson(city)
 
-    js shouldBe """{"id":1,"name":null,"country":{"id":1}}"""
+    cityJs shouldBe """{"id":1,"name":null,"country":{"id":1}}"""
+
+    val nullCity: City = null
+
+    val nullJs = toJson(nullCity)
+
+    nullJs shouldBe "null"
   }
 
   it should "write optional objects correctly" in {
@@ -72,6 +78,19 @@ class CaseClassWriterTests extends FlatSpec with Matchers {
 
   it should "write optional primitives correctly" in {
 
+    case class Task(id: Int, name: Option[String], isCompleted: Option[Boolean])
+
+    val minimalTask = Task(1, None, None)
+
+    val minimalJs = toJson(minimalTask)
+
+    minimalJs shouldBe """{"id":1,"name":null,"isCompleted":null}"""
+
+    val maximalTask = Task(1, Some("Take out the trash"), Some(true))
+
+    val maximalJs = toJson(maximalTask)
+
+    maximalJs shouldBe """{"id":1,"name":"Take out the trash","isCompleted":true}"""
   }
 
   it should "write numbers (and options of numbers) correctly" in {
@@ -84,7 +103,8 @@ class CaseClassWriterTests extends FlatSpec with Matchers {
 
     jsNumbersReqd shouldBe """{"id":1,"long":1,"short":1,"byte":1,"float":1,"double":1}"""
 
-    case class NumbersOptn(id: Int, long: Option[Long], short: Option[Short], byte: Option[Byte], float: Option[Float], double: Option[Double])
+    case class NumbersOptn(id: Int, long: Option[Long], short: Option[Short], byte: Option[Byte], float: Option[Float],
+                           double: Option[Double])
 
     val numbersOptn = NumbersOptn(1, Some(1L), Some(1.toShort), Some(1.toByte), Some(1F), Some(1.0))
 
@@ -92,10 +112,10 @@ class CaseClassWriterTests extends FlatSpec with Matchers {
 
     jsNumbersOptn shouldBe """{"id":1,"long":1,"short":1,"byte":1,"float":1,"double":1}"""
 
-    val numbersMissing = NumbersOptn(1, None, None, None, None, None)
+    val numbersMissing = NumbersOptn(2, None, None, None, None, None)
 
     val jsNumbersMissing = toJson(numbersMissing)
 
-    jsNumbersMissing shouldBe """{"id":1,"long":null,"short":null,"byte":null,"float":null,"double":null}"""
+    jsNumbersMissing shouldBe """{"id":2,"long":null,"short":null,"byte":null,"float":null,"double":null}"""
   }
 }

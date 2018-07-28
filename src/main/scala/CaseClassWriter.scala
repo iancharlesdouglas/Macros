@@ -32,9 +32,12 @@ object CaseClassWriter {
 
       } else {
 
-        val stmts = getObjectMembers(c)(weakTypeOf[T], obj)
-
-        q"json.JsonObject(..$stmts)"
+        q"""
+           if ($obj == null)
+             json.JsonNull()
+           else
+             json.JsonObject(..${getObjectMembers(c)(weakTypeOf[T], obj)})
+         """
       }
 
     q"""json.writer.JsonWriter.write(json.writer.DefaultWriteContext())($statements)"""
@@ -79,9 +82,10 @@ object CaseClassWriter {
         case "Option" =>
           val typeArg = fieldTypeArg.get.typeSymbol.name.toString
           typeArg match {
-            case "Int" | "Integer" | "Long" | "Double" | "Float" | "Short" | "Byte" => q"if ($value.isDefined) json.JsonNumber($id, $value.get) else json.JsonNull($id)"
-            case "String" => q"json.JsonString($id, $value.get)"
-            case "Boolean" => q"json.JsonBoolean($id, $value.get)"
+            case "Int" | "Integer" | "Long" | "Double" | "Float" | "Short" | "Byte" =>
+              q"if ($value.isDefined) json.JsonNumber($id, $value.get) else json.JsonNull($id)"
+            case "String" => q"if ($value.isDefined) json.JsonString($id, $value.get) else json.JsonNull($id)"
+            case "Boolean" => q"if ($value.isDefined) json.JsonBoolean($id, $value.get) else json.JsonNull($id)"
             case _ => {
               val optValue = q"$value.getOrElse(null)"
               q"""
