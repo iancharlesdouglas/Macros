@@ -41,6 +41,35 @@ class CaseClassWriterTests extends FlatSpec with Matchers {
     js shouldBe """[{"id":1,"name":"London","country":{"name":"England"}},{"id":2,"name":"Aberdeen","country":{"name":"Scotland"}}]"""
   }
 
+  it should "write an iterable of items correctly" in {
+
+    case class Country(name: String)
+
+    val countries = List(Country("UK"), Country("Italy"))
+
+    val js = toJson(countries)
+
+    js shouldBe """[{"name":"UK"},{"name":"Italy"}]"""
+  }
+
+  it should "write an iterable within a class correctly" in {
+
+    case class Deal(id: Int, products: List[Int])
+
+    val deal = Deal(1, List(1, 2, 3))
+
+    val js = toJson(deal)
+
+    js shouldBe """{"id":1,"products":[1,2,3]}"""
+
+    case class VecDeal(id: Int, products: Vector[Int])
+
+    val vecDeal = VecDeal(1, Vector(1, 2, 3))
+
+    val vecJs = toJson(vecDeal)
+    vecJs shouldBe """{"id":1,"products":[1,2,3]}"""
+  }
+
   it should "write nulls correctly" in {
 
     case class Country(id: Int)

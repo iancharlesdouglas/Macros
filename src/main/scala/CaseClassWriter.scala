@@ -15,9 +15,10 @@ object CaseClassWriter {
 
     val objType = weakTypeOf[T];
     val objTypeName = objType.erasure.typeSymbol.name.toString
+    val isIterable = objType.baseClasses.find(_.typeSignature.typeSymbol.name.toString == "Iterable")
 
     val statements =
-      if (objTypeName == "Array") {
+      if (objTypeName == "Array" || isIterable.isDefined) {
 
         val typeArg =
           if (objType.resultType.typeArgs.isEmpty)
@@ -26,7 +27,7 @@ object CaseClassWriter {
             objType.resultType.typeArgs.headOption
 
         val elements = q"..$obj"
-        val values = arrayElements(c)(typeArg, elements)
+        val values = sequenceElements(c)(typeArg, elements)
 
         q"""new json.JsonArray("", $values)"""
 
@@ -90,10 +91,11 @@ object CaseClassWriter {
     val fields = classMembers(c)(tpe)
 
     fields.map { field =>
-      val (fieldName, fieldTypeName, fieldType, fieldTypeArg) = field
+      val (fieldName, fieldTypeName, fieldType, fieldTypeArg, iterable) = field
       val fieldTerm = TermName(fieldName)
       val id = q"$fieldName"
       val value = q"$obj.$fieldTerm"
+      //val isIterable =  .baseClasses.find(_.typeSignature.typeSymbol.name.toString == "Iterable")
       fieldTypeName match {
         case "Int" | "Long" | "Double" | "Float" | "Short" | "Byte" => q"json.JsonNumber($id, $value)"
         case "String" => q"""json.JsonString($id, $value)"""
@@ -116,14 +118,18 @@ object CaseClassWriter {
                """
           }
         case "Array" =>
-          val values = arrayElements(c)(fieldTypeArg, value)
+          val values = sequenceElements(c)(fieldTypeArg, value)
+          q"new json.JsonArray($id, $values)"
+        case _ if iterable.isDefined =>
+          val values = sequenceElements(c)(fieldTypeArg, value)
           q"new json.JsonArray($id, $values)"
         case _ => q"json.JsonObject($id, ..${objectMembers(c)(fieldType.typeSignature, c.Expr(value))})"
       }
     }
   }
 
-  private def classMembers(c: Context)(tpe: c.universe.Type): List[(String, String, c.universe.Symbol, Option[c.universe.Type])] = {
+  private def classMembers(c: Context)(tpe: c.universe.Type): List[(String, String, c.universe.Symbol,
+    Option[c.universe.Type], Option[c.universe.Symbol])] = {
 
     tpe.members.collect {
       case field if field.isMethod && field.asMethod.isCaseAccessor =>
@@ -133,20 +139,21 @@ object CaseClassWriter {
           if (field.typeSignature.resultType.typeArgs.isEmpty)
             field.typeSignature.erasure.resultType.typeArgs.headOption
           else
-            field.typeSignature.resultType.typeArgs.headOption)
+            field.typeSignature.resultType.typeArgs.headOption,
+        field.typeSignature.baseClasses.find(_.typeSignature.typeSymbol.name.toString == "Iterable"))
     }.toList.reverse
   }
 
-  private def arrayElements(c: Context)(elementType: Option[c.universe.Type], array: c.Tree) = {
+  private def sequenceElements(c: Context)(elementType: Option[c.universe.Type], sequence: c.Tree) = {
 
     import c.universe._
 
     val typeArg = elementType.get.typeSymbol.name.toString
     typeArg match {
-      case "Int" | "Long" | "Double" | "Float" | "Short" | "Byte" => q"$array.map(json.JsonNumber(_))"
-      case "String" => q"$array.map(json.JsonString(_))"
-      case "Boolean" => q"$array.map(json.JsonBoolean(_))"
-      case _ => q"$array.map(toJsonAnon(_))"
+      case "Int" | "Long" | "Double" | "Float" | "Short" | "Byte" => q"$sequence.map(json.JsonNumber(_))"
+      case "String" => q"$sequence.map(json.JsonString(_))"
+      case "Boolean" => q"$sequence.map(json.JsonBoolean(_))"
+      case _ => q"$sequence.map(toJsonAnon(_))"
     }
   }
 }
