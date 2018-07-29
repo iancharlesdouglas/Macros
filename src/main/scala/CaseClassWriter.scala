@@ -15,10 +15,10 @@ object CaseClassWriter {
 
     val objType = weakTypeOf[T];
     val objTypeName = objType.erasure.typeSymbol.name.toString
-    val isIterable = objType.baseClasses.find(_.typeSignature.typeSymbol.name.toString == "Iterable")
+    val iterable = objType.baseClasses.find(_.typeSignature.typeSymbol.name.toString == "Iterable")
 
     val statements =
-      if (objTypeName == "Array" || isIterable.isDefined) {
+      if (objTypeName == "Array" || iterable.isDefined) {
 
         val typeArg =
           if (objType.resultType.typeArgs.isEmpty)
@@ -95,7 +95,6 @@ object CaseClassWriter {
       val fieldTerm = TermName(fieldName)
       val id = q"$fieldName"
       val value = q"$obj.$fieldTerm"
-      //val isIterable =  .baseClasses.find(_.typeSignature.typeSymbol.name.toString == "Iterable")
       fieldTypeName match {
         case "Int" | "Long" | "Double" | "Float" | "Short" | "Byte" => q"json.JsonNumber($id, $value)"
         case "String" => q"""json.JsonString($id, $value)"""
