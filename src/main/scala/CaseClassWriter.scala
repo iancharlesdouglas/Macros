@@ -66,6 +66,9 @@ object CaseClassWriter {
            val (fieldName, fieldType, fieldTerm) = m
            val fieldValue = fieldType match {
              case "Int" => q"source.elements.find(_.elementId == $fieldName).get.asInstanceOf[JsonNumber].value.toInt"
+             case "Long" => q"source.elements.find(_.elementId == $fieldName).get.asInstanceOf[JsonNumber].value.toLong"
+             case "Short" => q"source.elements.find(_.elementId == $fieldName).get.asInstanceOf[JsonNumber].value.toShort"
+             case "Byte" => q"source.elements.find(_.elementId == $fieldName).get.asInstanceOf[JsonNumber].value.toByte"
              case "String" => q"source.elements.find(_.elementId == $fieldName).get.asInstanceOf[JsonString].value"
            }
            q"$fieldTerm = $fieldValue"

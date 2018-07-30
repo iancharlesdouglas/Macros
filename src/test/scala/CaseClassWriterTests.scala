@@ -149,12 +149,14 @@ class CaseClassWriterTests extends FlatSpec with Matchers {
     jsNumbersMissing shouldBe """{"id":2,"long":null,"short":null,"byte":null,"float":null,"double":null}"""
   }
 
-  it should "read a simple JSON string into the fields of an object" in {
+  it should "read a simple JSON object into the fields of a case class object" in {
 
-    case class Country(id: Int, name: String)
+    case class Thing(id: Int, name: String, status: Long, typeId: Short, code: Byte)
 
-    val json = """{"id":1,"name":"One"}"""
+    val json = """{"id":1,"name":"One","status":10,"typeId":3,"code":2}"""
 
-    val country = fromJson[Country](json)
+    val thing = fromJson[Thing](json)
+
+    thing shouldBe Thing(1, "One", 10L, 3.toShort, 2.toByte)
   }
 }

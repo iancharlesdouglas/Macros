@@ -5,7 +5,6 @@ package json
   */
 case class JsonNumber(id: String, value: BigDecimal) extends JsonElement(id) {
 
-  override def find(fieldId: String): JsonElement = ???
 }
 
 object JsonNumber {
