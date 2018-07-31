@@ -1,5 +1,7 @@
 package json
 
+import json.exceptions.{InvalidObjectFormatException, UnsupportedTypeException}
+
 import language.experimental.macros
 import reflect.macros.blackbox.Context
 /**
@@ -57,19 +59,22 @@ object CaseClassWriter {
     val className = objType.typeSymbol.name.toString
     val consSelect = Ident(TermName(className))
 
-    val members = fields.map(field => (field._1, field._2, TermName(field._1)))
+    val members = fields.map(field => (field._1, field._2, TermName(field._1), field._5))
     q"""
        import json._
        val source = reader.JsonReader.read($json)
        $consSelect(..${
          members.map { m =>
-           val (fieldName, fieldType, fieldTerm) = m
+           val (fieldName, fieldType, fieldTerm, baseTypes) = m
            val fieldValue = fieldType match {
              case "Int" => q"source.elements.find(_.elementId == $fieldName).get.asInstanceOf[JsonNumber].value.toInt"
              case "Long" => q"source.elements.find(_.elementId == $fieldName).get.asInstanceOf[JsonNumber].value.toLong"
              case "Short" => q"source.elements.find(_.elementId == $fieldName).get.asInstanceOf[JsonNumber].value.toShort"
              case "Byte" => q"source.elements.find(_.elementId == $fieldName).get.asInstanceOf[JsonNumber].value.toByte"
+             case "Float" => q"source.elements.find(_.elementId == $fieldName).get.asInstanceOf[JsonNumber].value.toFloat"
+             case "Double" => q"source.elements.find(_.elementId == $fieldName).get.asInstanceOf[JsonNumber].value.toDouble"
              case "String" => q"source.elements.find(_.elementId == $fieldName).get.asInstanceOf[JsonString].value"
+             case _ if baseTypes.isEmpty => throw new UnsupportedTypeException(fieldName, s"""Type "$fieldType" is not supported""")
            }
            q"$fieldTerm = $fieldValue"
          } })
@@ -94,7 +99,7 @@ object CaseClassWriter {
     val fields = classMembers(c)(tpe)
 
     fields.map { field =>
-      val (fieldName, fieldTypeName, fieldType, fieldTypeArg, iterable) = field
+      val (fieldName, fieldTypeName, fieldType, fieldTypeArg, iterable, bases) = field
       val fieldTerm = TermName(fieldName)
       val id = q"$fieldName"
       val value = q"$obj.$fieldTerm"
@@ -131,7 +136,7 @@ object CaseClassWriter {
   }
 
   private def classMembers(c: Context)(tpe: c.universe.Type): List[(String, String, c.universe.Symbol,
-    Option[c.universe.Type], Option[c.universe.Symbol])] = {
+    Option[c.universe.Type], Option[c.universe.Symbol], List[c.universe.Symbol])] = {
 
     tpe.members.collect {
       case field if field.isMethod && field.asMethod.isCaseAccessor =>
@@ -142,7 +147,8 @@ object CaseClassWriter {
             field.typeSignature.erasure.resultType.typeArgs.headOption
           else
             field.typeSignature.resultType.typeArgs.headOption,
-        field.typeSignature.baseClasses.find(_.typeSignature.typeSymbol.name.toString == "Iterable"))
+        field.typeSignature.baseClasses.find(_.typeSignature.typeSymbol.name.toString == "Iterable"),
+        field.typeSignature.baseClasses)
     }.toList.reverse
   }
 
