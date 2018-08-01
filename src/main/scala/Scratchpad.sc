@@ -1,3 +1,5 @@
+import language.experimental.macros
+import reflect.macros.blackbox.Context._
 import json.CaseClassWriter._
 
 case class Country(id: Int, name: String)
@@ -27,3 +29,4 @@ toJson(countries)
 val country = fromJson[Country]("""{"id":1,"name":"One"}""")
 
 country.id
+

@@ -64,6 +64,7 @@ object CaseClassWriter {
        import json._
        val source = reader.JsonReader.read($json)
        $consSelect(..${
+        // function
          members.map { m =>
            val (fieldName, fieldType, fieldTerm, baseTypes) = m
            val fieldValue = fieldType match {
@@ -74,6 +75,9 @@ object CaseClassWriter {
              case "Float" => q"source.elements.find(_.elementId == $fieldName).get.asInstanceOf[JsonNumber].value.toFloat"
              case "Double" => q"source.elements.find(_.elementId == $fieldName).get.asInstanceOf[JsonNumber].value.toDouble"
              case "String" => q"source.elements.find(_.elementId == $fieldName).get.asInstanceOf[JsonString].value"
+             case "Char" => q"source.elements.find(_.elementId == $fieldName).get.asInstanceOf[JsonString].value.toCharArray()(0)"
+             case "Boolean" => q"source.elements.find(_.elementId == $fieldName).get.asInstanceOf[JsonBoolean].value"
+               // TODO - case class
              case _ if baseTypes.isEmpty => throw new UnsupportedTypeException(fieldName, s"""Type "$fieldType" is not supported""")
            }
            q"$fieldTerm = $fieldValue"
