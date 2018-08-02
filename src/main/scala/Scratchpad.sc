@@ -1,5 +1,4 @@
 import language.experimental.macros
-import reflect.macros.blackbox.Context._
 import json.CaseClassWriter._
 
 case class Country(id: Int, name: String)
@@ -30,3 +29,4 @@ val country = fromJson[Country]("""{"id":1,"name":"One"}""")
 
 country.id
 
+val city = fromJson[City]("""{"id":1,"name":"London","country":{"id":1,"name":"UK"}}""")

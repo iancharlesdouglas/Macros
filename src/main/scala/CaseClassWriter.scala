@@ -48,23 +48,65 @@ object CaseClassWriter {
 
   def fromJson[T](json: String): T = macro fromJson_impl[T]
 
+  def classFromJson(c: Context)(tpe: c.Type, src: c.Tree): c.Tree = {
+
+    import c.universe._
+
+    val fields = classMembers(c)(tpe)
+
+    val className = tpe.typeSymbol.name.toString
+    val consSelect = Ident(TermName(className))
+
+    val members = fields.map(field => (field._1, field._2, TermName(field._1), field._5, field._7))
+
+    q"""
+       def readObj(source: json.JsonElement) =
+       $consSelect(..${
+      members.map { m =>
+        val (fieldName, fieldType, fieldTerm, baseTypes, fieldTpe) = m
+        val fieldValue = fieldType match {
+          case "Int" => q"source.elements.find(_.elementId == $fieldName).get.asInstanceOf[json.JsonNumber].value.toInt"
+          case "Long" => q"source.elements.find(_.elementId == $fieldName).get.asInstanceOf[json.JsonNumber].value.toLong"
+          case "Short" => q"source.elements.find(_.elementId == $fieldName).get.asInstanceOf[json.JsonNumber].value.toShort"
+          case "Byte" => q"source.elements.find(_.elementId == $fieldName).get.asInstanceOf[json.JsonNumber].value.toByte"
+          case "Float" => q"source.elements.find(_.elementId == $fieldName).get.asInstanceOf[json.JsonNumber].value.toFloat"
+          case "Double" => q"source.elements.find(_.elementId == $fieldName).get.asInstanceOf[json.JsonNumber].value.toDouble"
+          case "String" => q"source.elements.find(_.elementId == $fieldName).get.asInstanceOf[json.JsonString].value"
+          case "Char" => q"source.elements.find(_.elementId == $fieldName).get.asInstanceOf[json.JsonString].value.toCharArray()(0)"
+          case "Boolean" => q"source.elements.find(_.elementId == $fieldName).get.asInstanceOf[json.JsonBoolean].value"
+          // TODO - case class
+          //case _ if baseTypes.isEmpty => throw new UnsupportedTypeException(fieldName, s"""Type "$fieldType" is not supported""")
+          case _ =>
+            val src = q"source.elements.find(_.elementId == $fieldName).get.asInstanceOf[json.JsonObject]"
+            q"${classFromJson(c)(fieldTpe, src)}"
+        }
+        q"$fieldTerm = $fieldValue"
+      } })
+
+       readObj($src)
+     """
+  }
+
   def fromJson_impl[T: c.WeakTypeTag](c: Context)(json: c.Expr[String]): c.Tree = {
 
     import c.universe._
 
     val objType = weakTypeOf[T]
 
-    val fields = classMembers(c)(objType)
+    classFromJson(c)(objType, q"json.reader.JsonReader.read($json)")
+    /*val fields = classMembers(c)(objType)
 
     val className = objType.typeSymbol.name.toString
     val consSelect = Ident(TermName(className))
 
     val members = fields.map(field => (field._1, field._2, TermName(field._1), field._5))
+
     q"""
        import json._
-       val source = reader.JsonReader.read($json)
+       val src = reader.JsonReader.read($json)
+
+       def readObj(source: JsonElement) =
        $consSelect(..${
-        // function
          members.map { m =>
            val (fieldName, fieldType, fieldTerm, baseTypes) = m
            val fieldValue = fieldType match {
@@ -82,7 +124,9 @@ object CaseClassWriter {
            }
            q"$fieldTerm = $fieldValue"
          } })
-     """
+
+       readObj(src)
+     """*/
   }
 
   def toJsonAnon[T](obj: T): JsonObject = macro toJsonAnon_impl[T]
@@ -103,7 +147,7 @@ object CaseClassWriter {
     val fields = classMembers(c)(tpe)
 
     fields.map { field =>
-      val (fieldName, fieldTypeName, fieldType, fieldTypeArg, iterable, bases) = field
+      val (fieldName, fieldTypeName, fieldType, fieldTypeArg, iterable, bases, fieldTpe) = field
       val fieldTerm = TermName(fieldName)
       val id = q"$fieldName"
       val value = q"$obj.$fieldTerm"
@@ -140,7 +184,7 @@ object CaseClassWriter {
   }
 
   private def classMembers(c: Context)(tpe: c.universe.Type): List[(String, String, c.universe.Symbol,
-    Option[c.universe.Type], Option[c.universe.Symbol], List[c.universe.Symbol])] = {
+    Option[c.universe.Type], Option[c.universe.Symbol], List[c.universe.Symbol], c.universe.Type)] = {
 
     tpe.members.collect {
       case field if field.isMethod && field.asMethod.isCaseAccessor =>
@@ -152,7 +196,8 @@ object CaseClassWriter {
           else
             field.typeSignature.resultType.typeArgs.headOption,
         field.typeSignature.baseClasses.find(_.typeSignature.typeSymbol.name.toString == "Iterable"),
-        field.typeSignature.baseClasses)
+        field.typeSignature.baseClasses,
+        field.typeSignature)
     }.toList.reverse
   }
 
