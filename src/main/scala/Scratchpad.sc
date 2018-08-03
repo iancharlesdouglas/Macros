@@ -30,3 +30,9 @@ val country = fromJson[Country]("""{"id":1,"name":"One"}""")
 country.id
 
 val city = fromJson[City]("""{"id":1,"name":"London","country":{"id":1,"name":"UK"}}""")
+
+case class Place(id: Int, city: City)
+
+val place = fromJson[Place](
+  """{"id":1,"city":{"id":1,"name":"London","country":{"id":1,"name":"UK"}}}"""
+)
