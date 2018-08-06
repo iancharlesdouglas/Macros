@@ -57,11 +57,11 @@ object CaseClassWriter {
     val className = tpe.typeSymbol.name.toString
     val consSelect = Ident(TermName(className))
 
-    val members = fields.map(field => (field._1, field._2, TermName(field._1), field._5, field._7))
+    val members = fields.map(field => (field._1, field._2, TermName(field._1), field._6, field._7))
 
     q"""
        def readObj(source: json.JsonElement) =
-//
+
        $consSelect(..${
       members.map { m =>
         val (fieldName, fieldType, fieldTerm, baseTypes, fieldTpe) = m
@@ -75,7 +75,7 @@ object CaseClassWriter {
           case "String" => q"source.elements.find(_.elementId == $fieldName).get.asInstanceOf[json.JsonString].value"
           case "Char" => q"source.elements.find(_.elementId == $fieldName).get.asInstanceOf[json.JsonString].value.toCharArray()(0)"
           case "Boolean" => q"source.elements.find(_.elementId == $fieldName).get.asInstanceOf[json.JsonBoolean].value"
-          case _ if fieldTpe.
+          case _ if baseTypes.find(_.name.toString == "AnyVal").isDefined => throw new UnsupportedTypeException(fieldName, s"""Type "$fieldType" is not supported""")
           // TODO - unsupported primitive check
           //case _ if baseTypes.isEmpty => throw new UnsupportedTypeException(fieldName, s"""Type "$fieldType" is not supported""")
           //case "Option"
