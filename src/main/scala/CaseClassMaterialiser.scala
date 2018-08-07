@@ -7,7 +7,7 @@ import reflect.macros.blackbox.Context
 /**
   * Created by Ian on 26/06/2018.
   */
-object CaseClassWriter {
+object CaseClassMaterialiser {
 
   def toJson[T](obj: T): String = macro toJson_impl[T]
 
@@ -60,27 +60,29 @@ object CaseClassWriter {
     val members = fields.map(field => (field._1, field._2, TermName(field._1), field._6, field._7))
 
     q"""
-       def readObj(source: json.JsonElement) =
+        import json._
+
+       def readObj(source: JsonElement) =
 
        $consSelect(..${
       members.map { m =>
         val (fieldName, fieldType, fieldTerm, baseTypes, fieldTpe) = m
         val fieldValue = fieldType match {
-          case "Int" => q"source.elements.find(_.elementId == $fieldName).get.asInstanceOf[json.JsonNumber].value.toInt"
-          case "Long" => q"source.elements.find(_.elementId == $fieldName).get.asInstanceOf[json.JsonNumber].value.toLong"
-          case "Short" => q"source.elements.find(_.elementId == $fieldName).get.asInstanceOf[json.JsonNumber].value.toShort"
-          case "Byte" => q"source.elements.find(_.elementId == $fieldName).get.asInstanceOf[json.JsonNumber].value.toByte"
-          case "Float" => q"source.elements.find(_.elementId == $fieldName).get.asInstanceOf[json.JsonNumber].value.toFloat"
-          case "Double" => q"source.elements.find(_.elementId == $fieldName).get.asInstanceOf[json.JsonNumber].value.toDouble"
-          case "String" => q"source.elements.find(_.elementId == $fieldName).get.asInstanceOf[json.JsonString].value"
-          case "Char" => q"source.elements.find(_.elementId == $fieldName).get.asInstanceOf[json.JsonString].value.toCharArray()(0)"
-          case "Boolean" => q"source.elements.find(_.elementId == $fieldName).get.asInstanceOf[json.JsonBoolean].value"
+          case "Int" => q"source.elements.find(_.elementId == $fieldName).get.asInstanceOf[JsonNumber].value.toInt"
+          case "Long" => q"source.elements.find(_.elementId == $fieldName).get.asInstanceOf[JsonNumber].value.toLong"
+          case "Short" => q"source.elements.find(_.elementId == $fieldName).get.asInstanceOf[JsonNumber].value.toShort"
+          case "Byte" => q"source.elements.find(_.elementId == $fieldName).get.asInstanceOf[JsonNumber].value.toByte"
+          case "Float" => q"source.elements.find(_.elementId == $fieldName).get.asInstanceOf[JsonNumber].value.toFloat"
+          case "Double" => q"source.elements.find(_.elementId == $fieldName).get.asInstanceOf[JsonNumber].value.toDouble"
+          case "String" => q"source.elements.find(_.elementId == $fieldName).get.asInstanceOf[JsonString].value"
+          case "Char" => q"source.elements.find(_.elementId == $fieldName).get.asInstanceOf[JsonString].value.toCharArray()(0)"
+          case "Boolean" => q"source.elements.find(_.elementId == $fieldName).get.asInstanceOf[JsonBoolean].value"
           case _ if baseTypes.find(_.name.toString == "AnyVal").isDefined => throw new UnsupportedTypeException(fieldName, s"""Type "$fieldType" is not supported""")
           // TODO - unsupported primitive check
           //case _ if baseTypes.isEmpty => throw new UnsupportedTypeException(fieldName, s"""Type "$fieldType" is not supported""")
           //case "Option"
           case _ =>
-            val src = q"source.elements.find(_.elementId == $fieldName).get.asInstanceOf[json.JsonObject]"
+            val src = q"source.elements.find(_.elementId == $fieldName).get.asInstanceOf[JsonObject]"
             q"${classFromJson(c)(fieldTpe, src)}"
         }
         q"$fieldTerm = $fieldValue"
@@ -96,7 +98,7 @@ object CaseClassWriter {
 
     val objType = weakTypeOf[T]
 
-    classFromJson(c)(objType, q"json.reader.JsonReader.read($json)")
+    classFromJson(c)(objType, q"import json._; reader.JsonReader.read($json)")
     /*val fields = classMembers(c)(objType)
 
     val className = objType.typeSymbol.name.toString

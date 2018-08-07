@@ -7,7 +7,7 @@ import json.exceptions.{JsonException, ReadPastEndOfElementException, Unrecognis
 import json.reader.JsonReader
 import org.scalatest.{FlatSpec, Matchers}
 
-class ObjectReaderTests extends FlatSpec with Matchers {
+class ReaderTests extends FlatSpec with Matchers {
 
   "Object reader" should "read empty object" in {
     val json = "{}"

@@ -1,5 +1,5 @@
 import language.experimental.macros
-import json.CaseClassWriter._
+import json.CaseClassMaterialiser._
 
 case class Country(id: Int, name: String)
 
@@ -31,8 +31,8 @@ country.id
 
 val city = fromJson[City]("""{"id":1,"name":"London","country":{"id":1,"name":"UK"}}""")
 
-case class Place(id: Int, city: City)
+case class Place(id: Int, name: String, city: City)
 
 val place = fromJson[Place](
-  """{"id":1,"city":{"id":1,"name":"London","country":{"id":1,"name":"UK"}}}"""
+  """{"id":1,"name":"X","city":{"id":1,"name":"London","country":{"id":1,"name":"UK"}}}"""
 )
