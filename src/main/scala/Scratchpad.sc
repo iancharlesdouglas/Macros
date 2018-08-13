@@ -31,8 +31,8 @@ country.id
 
 val city = fromJson[City]("""{"id":1,"name":"London","country":{"id":1,"name":"UK"}}""")
 
-case class Place(id: Int, name: String, city: City)
+case class Place(id: Int, sym: Option[Int], city: City)
 
 val place = fromJson[Place](
-  """{"id":1,"name":"X","city":{"id":1,"name":"London","country":{"id":1,"name":"UK"}}}"""
+  """{"id":1,"sym":12,"city":{"id":1,"name":"London","country":{"id":1,"name":"UK"}}}"""
 )

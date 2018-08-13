@@ -57,16 +57,17 @@ object CaseClassMaterialiser {
     val className = tpe.typeSymbol.name.toString
     val consSelect = Ident(TermName(className))
 
-    val members = fields.map(field => (field._1, field._2, TermName(field._1), field._6, field._7))
+    val members = fields.map(field => (field._1, field._2, TermName(field._1), field._6, field._7, field._4))
 
     q"""
-        import json._
+      import json._
 
-       def readObj(source: JsonElement) =
+      def readObj(source: JsonElement) =
 
-       $consSelect(..${
+      $consSelect(..${
       members.map { m =>
-        val (fieldName, fieldType, fieldTerm, baseTypes, fieldTpe) = m
+        //val (fieldName, fieldTypeName, fieldType, fieldTypeArg, iterable, bases, fieldTpe) = field
+        val (fieldName, fieldType, fieldTerm, baseTypes, fieldTpe, typeArg) = m
         val fieldValue = fieldType match {
           case "Int" => q"source.elements.find(_.elementId == $fieldName).get.asInstanceOf[JsonNumber].value.toInt"
           case "Long" => q"source.elements.find(_.elementId == $fieldName).get.asInstanceOf[JsonNumber].value.toLong"
@@ -77,6 +78,26 @@ object CaseClassMaterialiser {
           case "String" => q"source.elements.find(_.elementId == $fieldName).get.asInstanceOf[JsonString].value"
           case "Char" => q"source.elements.find(_.elementId == $fieldName).get.asInstanceOf[JsonString].value.toCharArray()(0)"
           case "Boolean" => q"source.elements.find(_.elementId == $fieldName).get.asInstanceOf[JsonBoolean].value"
+          case "Option" =>
+            q"""
+               val field = source.elements.find(_.elementId == $fieldName).get
+               if (field.isInstanceOf[JsonNull])
+                 None
+               else
+               ${
+              typeArg.get.typeSymbol.name.toString match {
+                case "Int" => q"Some(field.asInstanceOf[JsonNumber].value.toInt)"
+                case "Long" => q"Some(field.asInstanceOf[JsonNumber].value.toLong)"
+                case "Short" => q"Some(field.asInstanceOf[JsonNumber].value.toShort)"
+                case "Byte" => q"Some(field.asInstanceOf[JsonNumber].value.toByte)"
+                case "Float" => q"Some(field.asInstanceOf[JsonNumber].value.toFloat)"
+                case "Double" => q"Some(field.asInstanceOf[JsonNumber].value.toDouble)"
+                case "String" => q"Some(field.asInstanceOf[JsonString].value)"
+                case "Char" => q"Some(field.asInstanceOf[JsonString].value.toCharArray()(0))"
+                case "Boolean" => q"Some(field.asInstanceOf[JsonBoolean].value)"
+                  // TODO - nested object
+              }
+            }"""
           case _ if baseTypes.find(_.name.toString == "AnyVal").isDefined => throw new UnsupportedTypeException(fieldName, s"""Type "$fieldType" is not supported""")
           // TODO - unsupported primitive check
           //case _ if baseTypes.isEmpty => throw new UnsupportedTypeException(fieldName, s"""Type "$fieldType" is not supported""")
@@ -205,6 +226,8 @@ object CaseClassMaterialiser {
         field.typeSignature)
     }.toList.reverse
   }
+
+  //class Member(name: String, typeName: String, typeSymbol: Symbol, )
 
   private def sequenceElements(c: Context)(elementType: Option[c.universe.Type], sequence: c.Tree) = {
 
