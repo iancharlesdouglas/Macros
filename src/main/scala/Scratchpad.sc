@@ -36,3 +36,9 @@ case class Place(id: Int, sym: Option[Int], city: City)
 val place = fromJson[Place](
   """{"id":1,"sym":12,"city":{"id":1,"name":"London","country":{"id":1,"name":"UK"}}}"""
 )
+
+case class PlaceOpt(id: Int, city: Option[City])
+
+val placeOpt = fromJson[PlaceOpt](
+  """{"id":1,"city":{"id":1,"name":"London","country":{"id":1,"name":"UK"}}}"""
+)

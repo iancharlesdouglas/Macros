@@ -163,4 +163,19 @@ class CaseClassReaderTests extends FlatSpec with Matchers {
 
     thingWithFalse shouldBe Thing(1, Some(false))
   }
+
+  it should "read a nullable object field into a case class object" in {
+
+    case class Place(id: Int, name: String)
+
+    case class Thing(id: Int, place: Option[Place])
+
+    val thing = fromJson[Thing]("""{"id":1,"place":{"id":1,"name":"One"}}""")
+
+    thing shouldBe Thing(1, Some(Place(1, "One")))
+
+    val nullPlaceThing = fromJson[Thing]("""{"id":1,"place":null}""")
+
+    nullPlaceThing shouldBe Thing(1, None)
+  }
 }

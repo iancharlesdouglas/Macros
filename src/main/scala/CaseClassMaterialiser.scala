@@ -95,7 +95,9 @@ object CaseClassMaterialiser {
                 case "String" => q"Some(field.asInstanceOf[JsonString].value)"
                 case "Char" => q"Some(field.asInstanceOf[JsonString].value.toCharArray()(0))"
                 case "Boolean" => q"Some(field.asInstanceOf[JsonBoolean].value)"
-                  // TODO - nested object
+                case _ =>
+                  val src = q"field.asInstanceOf[JsonObject]"
+                  q"Some(${classFromJson(c)(typeArg.get, src)})"
               }
             }"""
           case _ if baseTypes.find(_.name.toString == "AnyVal").isDefined => throw new UnsupportedTypeException(fieldName, s"""Type "$fieldType" is not supported""")
