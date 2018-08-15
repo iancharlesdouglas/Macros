@@ -95,21 +95,45 @@ object CaseClassMaterialiser {
                 case "String" => q"Some(field.asInstanceOf[JsonString].value)"
                 case "Char" => q"Some(field.asInstanceOf[JsonString].value.toCharArray()(0))"
                 case "Boolean" => q"Some(field.asInstanceOf[JsonBoolean].value)"
+                // TODO - option of array
                 case _ =>
                   val src = q"field.asInstanceOf[JsonObject]"
                   q"Some(${classFromJson(c)(typeArg.get, src)})"
               }
             }"""
+          case "Array" =>
+            q"""
+              val array = source.elements.find(_.elementId == $fieldName).get.elements.toArray
+              ${
+              typeArg.get.typeSymbol.name.toString match {
+                case "Int" => q"array.map(_.asInstanceOf[JsonNumber].value.toInt)"
+                case "Long" => q"array.map(_.asInstanceOf[JsonNumber].value.toLong)"
+                case "Short" => q"array.map(_.asInstanceOf[JsonNumber].value.toShort)"
+                case "Byte" => q"array.map(_.asInstanceOf[JsonNumber].value.toByte)"
+                case "Float" => q"array.map(_.asInstanceOf[JsonNumber].value.toFloat)"
+                case "Double" => q"array.map(_.asInstanceOf[JsonNumber].value.toDouble)"
+                case "String" => q"array.map(_.asInstanceOf[JsonString].value)"
+                case "Char" => q"array.map(_.asInstanceOf[JsonString].value.toCharArray()(0))"
+                case "Boolean" => q"array.map(_.asInstanceOf[JsonBoolean].value)"
+                // TODO - Array of arrays
+                case _ =>
+                  q"""
+                     array.map(obj => {
+                       ${val src = q"obj.asInstanceOf[JsonObject]"}
+                       ${classFromJson(c)(typeArg.get, src)}
+                       })
+                   """
+              }}"""
           case _ if baseTypes.find(_.name.toString == "AnyVal").isDefined => throw new UnsupportedTypeException(fieldName, s"""Type "$fieldType" is not supported""")
           // TODO - unsupported primitive check
           //case _ if baseTypes.isEmpty => throw new UnsupportedTypeException(fieldName, s"""Type "$fieldType" is not supported""")
-          //case "Option"
+          // TODO - Lists, Vectors etc
           case _ =>
             val src = q"source.elements.find(_.elementId == $fieldName).get.asInstanceOf[JsonObject]"
             q"${classFromJson(c)(fieldTpe, src)}"
         }
         q"$fieldTerm = $fieldValue"
-      } })
+      }})
 
        readObj($src)
      """
@@ -122,39 +146,6 @@ object CaseClassMaterialiser {
     val objType = weakTypeOf[T]
 
     classFromJson(c)(objType, q"import json._; reader.JsonReader.read($json)")
-    /*val fields = classMembers(c)(objType)
-
-    val className = objType.typeSymbol.name.toString
-    val consSelect = Ident(TermName(className))
-
-    val members = fields.map(field => (field._1, field._2, TermName(field._1), field._5))
-
-    q"""
-       import json._
-       val src = reader.JsonReader.read($json)
-
-       def readObj(source: JsonElement) =
-       $consSelect(..${
-         members.map { m =>
-           val (fieldName, fieldType, fieldTerm, baseTypes) = m
-           val fieldValue = fieldType match {
-             case "Int" => q"source.elements.find(_.elementId == $fieldName).get.asInstanceOf[JsonNumber].value.toInt"
-             case "Long" => q"source.elements.find(_.elementId == $fieldName).get.asInstanceOf[JsonNumber].value.toLong"
-             case "Short" => q"source.elements.find(_.elementId == $fieldName).get.asInstanceOf[JsonNumber].value.toShort"
-             case "Byte" => q"source.elements.find(_.elementId == $fieldName).get.asInstanceOf[JsonNumber].value.toByte"
-             case "Float" => q"source.elements.find(_.elementId == $fieldName).get.asInstanceOf[JsonNumber].value.toFloat"
-             case "Double" => q"source.elements.find(_.elementId == $fieldName).get.asInstanceOf[JsonNumber].value.toDouble"
-             case "String" => q"source.elements.find(_.elementId == $fieldName).get.asInstanceOf[JsonString].value"
-             case "Char" => q"source.elements.find(_.elementId == $fieldName).get.asInstanceOf[JsonString].value.toCharArray()(0)"
-             case "Boolean" => q"source.elements.find(_.elementId == $fieldName).get.asInstanceOf[JsonBoolean].value"
-               // TODO - case class
-             case _ if baseTypes.isEmpty => throw new UnsupportedTypeException(fieldName, s"""Type "$fieldType" is not supported""")
-           }
-           q"$fieldTerm = $fieldValue"
-         } })
-
-       readObj(src)
-     """*/
   }
 
   def toJsonAnon[T](obj: T): JsonObject = macro toJsonAnon_impl[T]
@@ -228,8 +219,6 @@ object CaseClassMaterialiser {
         field.typeSignature)
     }.toList.reverse
   }
-
-  //class Member(name: String, typeName: String, typeSymbol: Symbol, )
 
   private def sequenceElements(c: Context)(elementType: Option[c.universe.Type], sequence: c.Tree) = {
 

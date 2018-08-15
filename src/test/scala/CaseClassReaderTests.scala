@@ -178,4 +178,94 @@ class CaseClassReaderTests extends FlatSpec with Matchers {
 
     nullPlaceThing shouldBe Thing(1, None)
   }
+
+  it should "read an array of Int values into a field of a case class object" in {
+
+    case class Thing(id: Int, places: Array[Int])
+
+    val thing = fromJson[Thing]("""{"id":1,"places":[1,2,3]}""")
+
+    thing.id shouldBe 1
+    thing.places shouldBe Array(1, 2, 3)
+  }
+
+  it should "read an array of Long values into a field of a case class object" in {
+
+    case class Thing(id: Int, places: Array[Long])
+
+    val thing = fromJson[Thing]("""{"id":1,"places":[1,2,3]}""")
+
+    thing.id shouldBe 1
+    thing.places shouldBe Array(1L, 2L, 3L)
+  }
+
+  it should "read an array of Short values into a field of a case class object" in {
+
+    case class Thing(id: Int, places: Array[Short])
+
+    val thing = fromJson[Thing]("""{"id":1,"places":[1,2,3]}""")
+
+    thing.id shouldBe 1
+    thing.places shouldBe Array(1.toShort, 2.toShort, 3.toShort)
+  }
+
+  it should "read an array of Byte values into a field of a case class object" in {
+
+    case class Thing(id: Int, places: Array[Byte])
+
+    val thing = fromJson[Thing]("""{"id":1,"places":[1,2,3]}""")
+
+    thing.id shouldBe 1
+    thing.places shouldBe Array(1.toByte, 2.toByte, 3.toByte)
+  }
+
+  it should "read an array of Float values into a field of a case class object" in {
+
+    case class Thing(id: Int, places: Array[Float])
+
+    val thing = fromJson[Thing]("""{"id":1,"places":[1,2,3]}""")
+
+    thing.id shouldBe 1
+    thing.places shouldBe Array(1F, 2F, 3F)
+  }
+
+  it should "read an array of Double values into a field of a case class object" in {
+
+    case class Thing(id: Int, places: Array[Double])
+
+    val thing = fromJson[Thing]("""{"id":1,"places":[1,2,3]}""")
+
+    thing.id shouldBe 1
+    thing.places shouldBe Array(1.0, 2.0, 3.0)
+  }
+
+  it should "read an array of String values into a field of a case class object" in {
+
+    case class Thing(id: Int, places: Array[String])
+
+    val thing = fromJson[Thing]("""{"id":1,"places":["1","2","3"]}""")
+
+    thing.id shouldBe 1
+    thing.places shouldBe Array("1", "2", "3")
+  }
+
+  it should "read an array of Char values into a field of a case class object" in {
+
+    case class Thing(id: Int, places: Array[Char])
+
+    val thing = fromJson[Thing]("""{"id":1,"places":["1","2","3"]}""")
+
+    thing.id shouldBe 1
+    thing.places shouldBe Array('1', '2', '3')
+  }
+
+  it should "read an array of Boolean values into a field of a case class object" in {
+
+    case class Thing(id: Int, places: Array[Boolean])
+
+    val thing = fromJson[Thing]("""{"id":1,"places":[true,false]}""")
+
+    thing.id shouldBe 1
+    thing.places shouldBe Array(true, false)
+  }
 }

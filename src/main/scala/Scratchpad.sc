@@ -42,3 +42,19 @@ case class PlaceOpt(id: Int, city: Option[City])
 val placeOpt = fromJson[PlaceOpt](
   """{"id":1,"city":{"id":1,"name":"London","country":{"id":1,"name":"UK"}}}"""
 )
+
+case class PlaceArr(id: Int, cities: Array[Int])
+
+val placeArr = fromJson[PlaceArr](
+  """{"id":1,"cities":[1,2]}"""
+)
+
+placeArr.cities(0)
+placeArr.cities(1)
+
+case class PlaceObj(id: Int, titles: Array[Title])
+
+val placeObj = fromJson[PlaceObj](
+  """{"id":1,"titles":[{"id":1}]}"""
+)
+placeObj.titles(0)
