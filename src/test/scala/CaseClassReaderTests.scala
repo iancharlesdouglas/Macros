@@ -274,12 +274,11 @@ class CaseClassReaderTests extends FlatSpec with Matchers {
     case class Place(id: Int, name: String)
     case class Thing(id: Int, places: Array[Place])
 
-    val thing = fromJson[Thing]("""{"id":1,"places":[{"id":1,"name":"UK"}]}""")
-    //val thing = fromJson[Thing]("""{"id":1,"places":[{"id":1,"name":"UK"},{"id":2,"name":"Eire"}]}""")
+    val thing = fromJson[Thing]("""{"id":1,"places":[{"id":1,"name":"UK"},{"id":2,"name":"Eire"}]}""")
 
-    thing.places.size shouldBe 1
+    thing.places.size shouldBe 2
     thing.places(0) shouldBe Place(1, "UK")
-    //thing.places(1) shouldBe Place(2, "Eire")
+    thing.places(1) shouldBe Place(2, "Eire")
   }
 
   it should "read a List of Int values into a field of a case class object" in {
@@ -292,7 +291,7 @@ class CaseClassReaderTests extends FlatSpec with Matchers {
     thing.places shouldBe List(1, 2)
   }
 
-  ignore should "read a Vector of Int values into a field of a case class object" in {
+  it should "read a Vector of Int values into a field of a case class object" in {
 
     case class Thing(id: Int, places: Vector[Int])
 

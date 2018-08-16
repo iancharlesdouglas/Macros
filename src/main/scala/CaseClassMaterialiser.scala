@@ -120,8 +120,8 @@ object CaseClassMaterialiser {
                 case _ =>
                   q"""
                      array.map(obj => {
-                       ${val src = q"obj.asInstanceOf[JsonObject]"}
-                       ${classFromJson(c)(typeArg.get, src)}
+                       ${val sc = q"obj.asInstanceOf[JsonObject]"
+                       classFromJson(c)(typeArg.get, sc)}
                        })
                    """
               }}
