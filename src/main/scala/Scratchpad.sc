@@ -55,6 +55,8 @@ placeArr.cities(1)
 case class PlaceObj(id: Int, titles: Array[Title])
 
 val placeObj = fromJson[PlaceObj](
-  """{"id":1,"titles":[{"id":1}]}"""
+  """{"id":1,"titles":[{"id":1},{"id":2}]}"""
 )
+placeObj.titles.size
 placeObj.titles(0)
+placeObj.titles(1)

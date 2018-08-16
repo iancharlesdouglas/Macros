@@ -101,10 +101,10 @@ object CaseClassMaterialiser {
                   q"Some(${classFromJson(c)(typeArg.get, src)})"
               }
             }"""
-          case "Array" =>
+          case "Array" | "List" | "Vector" =>
             q"""
               val array = source.elements.find(_.elementId == $fieldName).get.elements.toArray
-              ${
+              val seq = ${
               typeArg.get.typeSymbol.name.toString match {
                 case "Int" => q"array.map(_.asInstanceOf[JsonNumber].value.toInt)"
                 case "Long" => q"array.map(_.asInstanceOf[JsonNumber].value.toLong)"
@@ -116,6 +116,7 @@ object CaseClassMaterialiser {
                 case "Char" => q"array.map(_.asInstanceOf[JsonString].value.toCharArray()(0))"
                 case "Boolean" => q"array.map(_.asInstanceOf[JsonBoolean].value)"
                 // TODO - Array of arrays
+
                 case _ =>
                   q"""
                      array.map(obj => {
@@ -123,7 +124,13 @@ object CaseClassMaterialiser {
                        ${classFromJson(c)(typeArg.get, src)}
                        })
                    """
-              }}"""
+              }}
+              ${if (fieldType != "Array") {
+                val seqCons = Ident(TermName(fieldType))
+                q"${seqCons}() ++ seq"
+              } else
+                q"seq"}
+              """
           case _ if baseTypes.find(_.name.toString == "AnyVal").isDefined => throw new UnsupportedTypeException(fieldName, s"""Type "$fieldType" is not supported""")
           // TODO - unsupported primitive check
           //case _ if baseTypes.isEmpty => throw new UnsupportedTypeException(fieldName, s"""Type "$fieldType" is not supported""")
