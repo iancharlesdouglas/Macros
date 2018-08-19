@@ -1,5 +1,5 @@
 import language.experimental.macros
-import json.CaseClassMaterialiser._
+import json.CompileTimeReaderWriter._
 
 case class Country(id: Int, name: String)
 
@@ -60,3 +60,6 @@ val placeObj = fromJson[PlaceObj](
 placeObj.titles.size
 placeObj.titles(0)
 placeObj.titles(1)
+
+val arr = "[1,2,3]"
+fromJson[Array[Int]](arr)

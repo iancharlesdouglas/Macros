@@ -7,7 +7,7 @@ import reflect.macros.blackbox.Context
 /**
   * Created by Ian on 26/06/2018.
   */
-object CaseClassMaterialiser {
+object CompileTimeReaderWriter {
 
   def toJson[T](obj: T): String = macro toJson_impl[T]
 
@@ -48,7 +48,7 @@ object CaseClassMaterialiser {
 
   def fromJson[T](json: String): T = macro fromJson_impl[T]
 
-  def classFromJson(c: Context)(tpe: c.Type, src: c.Tree): c.Tree = {
+  def readObject(c: Context)(tpe: c.Type, src: c.Tree): c.Tree = {
 
     import c.universe._
 
@@ -98,46 +98,19 @@ object CaseClassMaterialiser {
                 // TODO - option of array
                 case _ =>
                   val src = q"field.asInstanceOf[JsonObject]"
-                  q"Some(${classFromJson(c)(typeArg.get, src)})"
+                  q"Some(${readObject(c)(typeArg.get, src)})"
               }
             }"""
-          case "Array" | "List" | "Vector" =>
-            q"""
-              val array = source.elements.find(_.elementId == $fieldName).get.elements.toArray
-              val seq = ${
-              typeArg.get.typeSymbol.name.toString match {
-                case "Int" => q"array.map(_.asInstanceOf[JsonNumber].value.toInt)"
-                case "Long" => q"array.map(_.asInstanceOf[JsonNumber].value.toLong)"
-                case "Short" => q"array.map(_.asInstanceOf[JsonNumber].value.toShort)"
-                case "Byte" => q"array.map(_.asInstanceOf[JsonNumber].value.toByte)"
-                case "Float" => q"array.map(_.asInstanceOf[JsonNumber].value.toFloat)"
-                case "Double" => q"array.map(_.asInstanceOf[JsonNumber].value.toDouble)"
-                case "String" => q"array.map(_.asInstanceOf[JsonString].value)"
-                case "Char" => q"array.map(_.asInstanceOf[JsonString].value.toCharArray()(0))"
-                case "Boolean" => q"array.map(_.asInstanceOf[JsonBoolean].value)"
-                // TODO - Array of arrays
-
-                case _ =>
-                  q"""
-                     array.map(obj => {
-                       ${val sc = q"obj.asInstanceOf[JsonObject]"
-                       classFromJson(c)(typeArg.get, sc)}
-                       })
-                   """
-              }}
-              ${if (fieldType != "Array") {
-                val seqCons = Ident(TermName(fieldType))
-                q"${seqCons}() ++ seq"
-              } else
-                q"seq"}
-              """
+          case "Array" | "List" | "Vector" | "Seq" =>
+            val sequence = q"source.elements.find(_.elementId == $fieldName).get.elements.toArray"
+            readSequence(c)(sequence, typeArg, fieldType)
           case _ if baseTypes.find(_.name.toString == "AnyVal").isDefined => throw new UnsupportedTypeException(fieldName, s"""Type "$fieldType" is not supported""")
           // TODO - unsupported primitive check
           //case _ if baseTypes.isEmpty => throw new UnsupportedTypeException(fieldName, s"""Type "$fieldType" is not supported""")
           // TODO - Lists, Vectors etc
           case _ =>
             val src = q"source.elements.find(_.elementId == $fieldName).get.asInstanceOf[JsonObject]"
-            q"${classFromJson(c)(fieldTpe, src)}"
+            q"${readObject(c)(fieldTpe, src)}"
         }
         q"$fieldTerm = $fieldValue"
       }})
@@ -146,13 +119,54 @@ object CaseClassMaterialiser {
      """
   }
 
+  def readSequence(c: Context)(array: c.Tree, typeArg: Option[c.Type], fieldType: String): c.Tree = {
+
+    import c.universe._
+
+    q"""
+      import json._
+
+      val seq = ${
+      typeArg.get.typeSymbol.name.toString match {
+        case "Int" => q"$array.map(_.asInstanceOf[JsonNumber].value.toInt)"
+        case "Long" => q"$array.map(_.asInstanceOf[JsonNumber].value.toLong)"
+        case "Short" => q"$array.map(_.asInstanceOf[JsonNumber].value.toShort)"
+        case "Byte" => q"$array.map(_.asInstanceOf[JsonNumber].value.toByte)"
+        case "Float" => q"$array.map(_.asInstanceOf[JsonNumber].value.toFloat)"
+        case "Double" => q"$array.map(_.asInstanceOf[JsonNumber].value.toDouble)"
+        case "String" => q"$array.map(_.asInstanceOf[JsonString].value)"
+        case "Char" => q"$array.map(_.asInstanceOf[JsonString].value.toCharArray()(0))"
+        case "Boolean" => q"$array.map(_.asInstanceOf[JsonBoolean].value)"
+        // TODO - Array of arrays
+
+        case _ =>
+          q"""
+           $array.map(obj => {
+             ${val sc = q"obj.asInstanceOf[JsonObject]"
+            readObject(c)(typeArg.get, sc)}
+               })
+           """
+      }}
+    ${if (fieldType != "Array") {
+      val seqCons = Ident(TermName(fieldType))
+      q"${seqCons}() ++ seq"
+    } else
+      q"seq"
+    }"""
+  }
+
   def fromJson_impl[T: c.WeakTypeTag](c: Context)(json: c.Expr[String]): c.Tree = {
 
     import c.universe._
 
     val objType = weakTypeOf[T]
 
-    classFromJson(c)(objType, q"import json._; reader.JsonReader.read($json)")
+    objType.typeSymbol.name.toString match {
+      case "Array" | "List" | "Vector" | "Seq" => {
+        readSequence(c)(q"import json._; reader.JsonReader.read($json).elements.toArray", Some(objType.typeArgs.head), objType.typeSymbol.name.toString)
+      }
+      case _ => readObject(c)(objType, q"import json._; reader.JsonReader.read($json)")
+    }
   }
 
   def toJsonAnon[T](obj: T): JsonObject = macro toJsonAnon_impl[T]

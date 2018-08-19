@@ -4,7 +4,7 @@ import org.scalatest.{FlatSpec, Matchers}
 
 class CaseClassWriterTests extends FlatSpec with Matchers {
 
-  import CaseClassMaterialiser._
+  import CompileTimeReaderWriter._
 
   "Case class writer" should "write a fairly complex object correctly" in {
 

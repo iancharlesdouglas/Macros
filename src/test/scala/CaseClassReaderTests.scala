@@ -4,7 +4,7 @@ import org.scalatest.{FlatSpec, Matchers}
 
 class CaseClassReaderTests extends FlatSpec with Matchers {
 
-  import CaseClassMaterialiser._
+  import CompileTimeReaderWriter._
 
   it should "read a simple JSON object into the fields of a case class object" in {
 
@@ -299,5 +299,20 @@ class CaseClassReaderTests extends FlatSpec with Matchers {
 
     thing.id shouldBe 1
     thing.places shouldBe Vector(1, 2)
+  }
+
+  it should "read a Seq of Int values into a field of a case class object" in {
+
+    case class Thing(id: Int, places: Seq[Int])
+
+    val thing = fromJson[Thing]("""{"id":1,"places":[1,2]}""")
+
+    thing.id shouldBe 1
+    thing.places shouldBe Seq(1, 2)
+  }
+
+  it should "read an array of Int values from a root-level array" in {
+    val array = fromJson[Array[Int]]("[1,2,3]")
+    array shouldBe Array(1, 2, 3)
   }
 }
