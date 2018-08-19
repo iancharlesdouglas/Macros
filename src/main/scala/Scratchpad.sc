@@ -63,3 +63,6 @@ placeObj.titles(1)
 
 val arr = "[1,2,3]"
 fromJson[Array[Int]](arr)
+
+case class Blah(id: Any)
+fromJson[Blah]("""{"id":1}""")

@@ -82,7 +82,6 @@ object CompileTimeReaderWriter {
 
       $consSelect(..${
       members.map { m =>
-        //val (fieldName, fieldTypeName, fieldType, fieldTypeArg, iterable, bases, fieldTpe) = field
         val (fieldName, fieldType, fieldTerm, baseTypes, fieldTpe, typeArg) = m
         val fieldValue = fieldType match {
           case "Int" => q"source.elements.find(_.elementId == $fieldName).get.asInstanceOf[JsonNumber].value.toInt"
@@ -94,35 +93,11 @@ object CompileTimeReaderWriter {
           case "String" => q"source.elements.find(_.elementId == $fieldName).get.asInstanceOf[JsonString].value"
           case "Char" => q"source.elements.find(_.elementId == $fieldName).get.asInstanceOf[JsonString].value.toCharArray()(0)"
           case "Boolean" => q"source.elements.find(_.elementId == $fieldName).get.asInstanceOf[JsonBoolean].value"
-          case "Option" =>
-            q"""
-               val field = source.elements.find(_.elementId == $fieldName).get
-               if (field.isInstanceOf[JsonNull])
-                 None
-               else
-               ${
-              typeArg.get.typeSymbol.name.toString match {
-                case "Int" => q"Some(field.asInstanceOf[JsonNumber].value.toInt)"
-                case "Long" => q"Some(field.asInstanceOf[JsonNumber].value.toLong)"
-                case "Short" => q"Some(field.asInstanceOf[JsonNumber].value.toShort)"
-                case "Byte" => q"Some(field.asInstanceOf[JsonNumber].value.toByte)"
-                case "Float" => q"Some(field.asInstanceOf[JsonNumber].value.toFloat)"
-                case "Double" => q"Some(field.asInstanceOf[JsonNumber].value.toDouble)"
-                case "String" => q"Some(field.asInstanceOf[JsonString].value)"
-                case "Char" => q"Some(field.asInstanceOf[JsonString].value.toCharArray()(0))"
-                case "Boolean" => q"Some(field.asInstanceOf[JsonBoolean].value)"
-                case "Array" | "List" | "Vector" | "Seq" =>
-                  val seq = readSequence(c)(q"field.elements.toArray", Some(typeArg.get.typeArgs.head),
-                    typeArg.get.typeSymbol.name.toString)
-                  q"Some($seq)"
-                case _ =>
-                  val src = q"field.asInstanceOf[JsonObject]"
-                  q"Some(${readObject(c)(typeArg.get, src)})"
-              }
-            }"""
+          case "Option" => readOption(c)(q"source.elements.find(_.elementId == $fieldName).get", typeArg)
           case "Array" | "List" | "Vector" | "Seq" =>
             readSequence(c)(q"source.elements.find(_.elementId == $fieldName).get.elements.toArray", typeArg, fieldType)
-          case _ if baseTypes.find(_.name.toString == "AnyVal").isDefined => throw new UnsupportedTypeException(fieldName, s"""Type "$fieldType" is not supported""")
+          case "Any" | "AnyVal" | "AnyRef" => throw new UnsupportedTypeException(fieldName, s"""Type "$fieldType" is not supported""")
+          //case _ if baseTypes.find(_.name.toString == "AnyVal").isDefined => throw new UnsupportedTypeException(fieldName, s"""Type "$fieldType" is not supported""")
           // TODO - unsupported primitive check (NtH)
           //case _ if baseTypes.isEmpty => throw new UnsupportedTypeException(fieldName, s"""Type "$fieldType" is not supported""")
           case _ =>
@@ -134,6 +109,37 @@ object CompileTimeReaderWriter {
 
        readObj($src)
      """
+  }
+
+  def readOption(c: Context)(option: c.Tree, typeArg: Option[c.Type]): c.Tree = {
+
+    import c.universe._
+
+    q"""
+     val field = $option
+     if (field.isInstanceOf[JsonNull])
+       None
+     else
+     ${
+      typeArg.get.typeSymbol.name.toString match {
+        case "Int" => q"Some(field.asInstanceOf[JsonNumber].value.toInt)"
+        case "Long" => q"Some(field.asInstanceOf[JsonNumber].value.toLong)"
+        case "Short" => q"Some(field.asInstanceOf[JsonNumber].value.toShort)"
+        case "Byte" => q"Some(field.asInstanceOf[JsonNumber].value.toByte)"
+        case "Float" => q"Some(field.asInstanceOf[JsonNumber].value.toFloat)"
+        case "Double" => q"Some(field.asInstanceOf[JsonNumber].value.toDouble)"
+        case "String" => q"Some(field.asInstanceOf[JsonString].value)"
+        case "Char" => q"Some(field.asInstanceOf[JsonString].value.toCharArray()(0))"
+        case "Boolean" => q"Some(field.asInstanceOf[JsonBoolean].value)"
+        case "Array" | "List" | "Vector" | "Seq" =>
+          val seq = readSequence(c)(q"field.elements.toArray", Some(typeArg.get.typeArgs.head),
+            typeArg.get.typeSymbol.name.toString)
+          q"Some($seq)"
+        case _ =>
+          val src = q"field.asInstanceOf[JsonObject]"
+          q"Some(${readObject(c)(typeArg.get, src)})"
+      }
+    }"""
   }
 
   def readSequence(c: Context)(sequence: c.Tree, typeArg: Option[c.Type], fieldType: String): c.Tree = {
@@ -161,7 +167,13 @@ object CompileTimeReaderWriter {
                 readSequence(c)(se, Some(typeArg.get.typeArgs.head), typeArg.get.typeSymbol.name.toString)}
               })
             """
-        // TODO - array of optional values
+        case "Option" =>
+          q"""
+             $sequence.map(opt => {
+                ${val option = q"opt"
+                  readOption(c)(option, Some(typeArg.get.typeArgs.head))}
+               })
+           """
         case _ =>
           q"""
            $sequence.map(obj => {

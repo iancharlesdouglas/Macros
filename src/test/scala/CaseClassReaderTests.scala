@@ -410,4 +410,18 @@ class CaseClassReaderTests extends FlatSpec with Matchers {
     thing.id shouldBe 1
     thing.flags shouldBe Vector(Seq(true, false), Seq(false, false, false))
   }
+
+  it should "read an array of optional ints" in {
+
+    val things = fromJson[Array[Option[Int]]]("""[1,null,2,null,3]""")
+
+    things shouldBe Array(Some(1), None, Some(2), None, Some(3))
+  }
+
+  /*it should "prevent a member of type Any" in {
+
+    case class Thing(id: Any)
+
+    val thing = fromJson[Thing]("""{"id":1}""")
+  }*/
 }
