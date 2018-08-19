@@ -315,4 +315,99 @@ class CaseClassReaderTests extends FlatSpec with Matchers {
     val array = fromJson[Array[Int]]("[1,2,3]")
     array shouldBe Array(1, 2, 3)
   }
+
+  it should "read an optional array of Int values into a field of a case class object" in {
+
+    case class Thing(id:Int, places: Option[Array[Int]])
+
+    val thing = fromJson[Thing]("""{"id":1,"places":[1,2,3]}""")
+
+    thing.id shouldBe 1
+    thing.places.get shouldBe Array(1, 2, 3)
+  }
+
+  it should "read a null array as the value None for an optional array field of a case class object" in {
+
+    case class Thing(id: Int, places: Option[Array[Int]])
+
+    val thing = fromJson[Thing]("""{"id":1,"places":null}""")
+
+    thing.id shouldBe 1
+    thing.places shouldBe None
+  }
+
+  it should "read an optional list of objects into a field of a case class object" in {
+
+    case class Place(id: Int, name: String)
+    case class Thing(id: Int, places: Option[Array[Place]])
+
+    val thing = fromJson[Thing]("""{"id":1,"places":[{"id":1,"name":"London"},{"id":2,"name":"UK"}]}""")
+
+    thing.id shouldBe 1
+    thing.places.get.size shouldBe 2
+    thing.places.get(0).id shouldBe 1
+    thing.places.get(0).name shouldBe "London"
+    thing.places.get(1).id shouldBe 2
+    thing.places.get(1).name shouldBe "UK"
+  }
+
+  it should "read an optional vector of float values into a field of a case class object" in {
+
+    case class Thing(id: Int, rates: Option[Vector[Float]])
+
+    val thing = fromJson[Thing]("""{"id":1,"rates":[1.001, 2.002]}""")
+
+    thing.id shouldBe 1
+    thing.rates.get shouldBe Vector(1.001F, 2.002F)
+  }
+
+  it should "read an optional seq of double values into a field of a case class object" in {
+
+    case class Thing(id: Int, prices: Option[Seq[Double]])
+
+    val thing = fromJson[Thing]("""{"id":1,"prices":[10.01, 20.02]}""")
+
+    thing.id shouldBe 1
+    thing.prices.get shouldBe Seq(10.01, 20.02)
+  }
+
+  it should "read an array of arrays into a field of a case class object" in {
+
+    case class Thing(id: Int, combinations: Array[Array[Int]])
+
+    val thing = fromJson[Thing]("""{"id":1,"combinations":[[1,2],[1,3]]}""")
+
+    thing.id shouldBe 1
+    thing.combinations shouldBe Array(Array(1, 2), Array(1, 3))
+  }
+
+  it should "read an array of lists into a field of a case class object" in {
+
+    case class Thing(id: Int, combinations: Array[List[Boolean]])
+
+    val thing = fromJson[Thing]("""{"id":1,"combinations":[[true, false],[false, false]]}""")
+
+    thing.id shouldBe 1
+    thing.combinations shouldBe Array(List(true, false), List(false, false))
+  }
+
+  it should "read a list of vectors into a field of a case class object" in {
+
+    case class Thing(id: Int, combinations: List[Vector[Float]])
+
+    val thing = fromJson[Thing]("""{"id":1,"combinations":[[1.01,0.0002],[200.04,2992.0,2992.31]]}""")
+
+    thing.id shouldBe 1
+    thing.combinations shouldBe List(Vector(1.01F, 0.0002F), Vector(200.04F, 2992F, 2992.31F))
+  }
+
+  it should "read a vector of seqs into a field of a case class object" in {
+
+    case class Thing(id: Int, flags: Vector[Seq[Boolean]])
+
+    val thing = fromJson[Thing]("""{"id":1,"flags":[[true,false], [false, false, false]]}""")
+
+    thing.id shouldBe 1
+    thing.flags shouldBe Vector(Seq(true, false), Seq(false, false, false))
+  }
 }

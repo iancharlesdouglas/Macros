@@ -48,6 +48,22 @@ object CompileTimeReaderWriter {
 
   def fromJson[T](json: String): T = macro fromJson_impl[T]
 
+  def fromJson_impl[T: c.WeakTypeTag](c: Context)(json: c.Expr[String]): c.Tree = {
+
+    import c.universe._
+
+    val objType = weakTypeOf[T]
+
+    objType.typeSymbol.name.toString match {
+      case "Array" | "List" | "Vector" | "Seq" => {
+        readSequence(c)(q"import json._; reader.JsonReader.read($json).elements.toArray",
+          Some(objType.typeArgs.head),
+          objType.typeSymbol.name.toString)
+      }
+      case _ => readObject(c)(objType, q"import json._; reader.JsonReader.read($json)")
+    }
+  }
+
   def readObject(c: Context)(tpe: c.Type, src: c.Tree): c.Tree = {
 
     import c.universe._
@@ -95,19 +111,20 @@ object CompileTimeReaderWriter {
                 case "String" => q"Some(field.asInstanceOf[JsonString].value)"
                 case "Char" => q"Some(field.asInstanceOf[JsonString].value.toCharArray()(0))"
                 case "Boolean" => q"Some(field.asInstanceOf[JsonBoolean].value)"
-                // TODO - option of array
+                case "Array" | "List" | "Vector" | "Seq" =>
+                  val seq = readSequence(c)(q"field.elements.toArray", Some(typeArg.get.typeArgs.head),
+                    typeArg.get.typeSymbol.name.toString)
+                  q"Some($seq)"
                 case _ =>
                   val src = q"field.asInstanceOf[JsonObject]"
                   q"Some(${readObject(c)(typeArg.get, src)})"
               }
             }"""
           case "Array" | "List" | "Vector" | "Seq" =>
-            val sequence = q"source.elements.find(_.elementId == $fieldName).get.elements.toArray"
-            readSequence(c)(sequence, typeArg, fieldType)
+            readSequence(c)(q"source.elements.find(_.elementId == $fieldName).get.elements.toArray", typeArg, fieldType)
           case _ if baseTypes.find(_.name.toString == "AnyVal").isDefined => throw new UnsupportedTypeException(fieldName, s"""Type "$fieldType" is not supported""")
-          // TODO - unsupported primitive check
+          // TODO - unsupported primitive check (NtH)
           //case _ if baseTypes.isEmpty => throw new UnsupportedTypeException(fieldName, s"""Type "$fieldType" is not supported""")
-          // TODO - Lists, Vectors etc
           case _ =>
             val src = q"source.elements.find(_.elementId == $fieldName).get.asInstanceOf[JsonObject]"
             q"${readObject(c)(fieldTpe, src)}"
@@ -119,7 +136,7 @@ object CompileTimeReaderWriter {
      """
   }
 
-  def readSequence(c: Context)(array: c.Tree, typeArg: Option[c.Type], fieldType: String): c.Tree = {
+  def readSequence(c: Context)(sequence: c.Tree, typeArg: Option[c.Type], fieldType: String): c.Tree = {
 
     import c.universe._
 
@@ -128,20 +145,26 @@ object CompileTimeReaderWriter {
 
       val seq = ${
       typeArg.get.typeSymbol.name.toString match {
-        case "Int" => q"$array.map(_.asInstanceOf[JsonNumber].value.toInt)"
-        case "Long" => q"$array.map(_.asInstanceOf[JsonNumber].value.toLong)"
-        case "Short" => q"$array.map(_.asInstanceOf[JsonNumber].value.toShort)"
-        case "Byte" => q"$array.map(_.asInstanceOf[JsonNumber].value.toByte)"
-        case "Float" => q"$array.map(_.asInstanceOf[JsonNumber].value.toFloat)"
-        case "Double" => q"$array.map(_.asInstanceOf[JsonNumber].value.toDouble)"
-        case "String" => q"$array.map(_.asInstanceOf[JsonString].value)"
-        case "Char" => q"$array.map(_.asInstanceOf[JsonString].value.toCharArray()(0))"
-        case "Boolean" => q"$array.map(_.asInstanceOf[JsonBoolean].value)"
-        // TODO - Array of arrays
-
+        case "Int" => q"$sequence.map(_.asInstanceOf[JsonNumber].value.toInt)"
+        case "Long" => q"$sequence.map(_.asInstanceOf[JsonNumber].value.toLong)"
+        case "Short" => q"$sequence.map(_.asInstanceOf[JsonNumber].value.toShort)"
+        case "Byte" => q"$sequence.map(_.asInstanceOf[JsonNumber].value.toByte)"
+        case "Float" => q"$sequence.map(_.asInstanceOf[JsonNumber].value.toFloat)"
+        case "Double" => q"$sequence.map(_.asInstanceOf[JsonNumber].value.toDouble)"
+        case "String" => q"$sequence.map(_.asInstanceOf[JsonString].value)"
+        case "Char" => q"$sequence.map(_.asInstanceOf[JsonString].value.toCharArray()(0))"
+        case "Boolean" => q"$sequence.map(_.asInstanceOf[JsonBoolean].value)"
+        case "Array" | "List" | "Vector" | "Seq" =>
+          q"""
+             $sequence.map(seqnce => {
+               ${val se = q"seqnce.elements.toArray"
+                readSequence(c)(se, Some(typeArg.get.typeArgs.head), typeArg.get.typeSymbol.name.toString)}
+              })
+            """
+        // TODO - array of optional values
         case _ =>
           q"""
-           $array.map(obj => {
+           $sequence.map(obj => {
              ${val sc = q"obj.asInstanceOf[JsonObject]"
             readObject(c)(typeArg.get, sc)}
                })
@@ -153,20 +176,6 @@ object CompileTimeReaderWriter {
     } else
       q"seq"
     }"""
-  }
-
-  def fromJson_impl[T: c.WeakTypeTag](c: Context)(json: c.Expr[String]): c.Tree = {
-
-    import c.universe._
-
-    val objType = weakTypeOf[T]
-
-    objType.typeSymbol.name.toString match {
-      case "Array" | "List" | "Vector" | "Seq" => {
-        readSequence(c)(q"import json._; reader.JsonReader.read($json).elements.toArray", Some(objType.typeArgs.head), objType.typeSymbol.name.toString)
-      }
-      case _ => readObject(c)(objType, q"import json._; reader.JsonReader.read($json)")
-    }
   }
 
   def toJsonAnon[T](obj: T): JsonObject = macro toJsonAnon_impl[T]
