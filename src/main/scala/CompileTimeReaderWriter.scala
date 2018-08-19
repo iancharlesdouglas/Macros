@@ -96,7 +96,7 @@ object CompileTimeReaderWriter {
           case "Option" => readOption(c)(q"source.elements.find(_.elementId == $fieldName).get", typeArg)
           case "Array" | "List" | "Vector" | "Seq" =>
             readSequence(c)(q"source.elements.find(_.elementId == $fieldName).get.elements.toArray", typeArg, fieldType)
-          case "Any" | "AnyVal" | "AnyRef" => throw new UnsupportedTypeException(fieldName, s"""Type "$fieldType" is not supported""")
+          //case "Any" | "AnyVal" | "AnyRef" => throw new UnsupportedTypeException(fieldName, s"""Type "$fieldType" is not supported""")
           //case _ if baseTypes.find(_.name.toString == "AnyVal").isDefined => throw new UnsupportedTypeException(fieldName, s"""Type "$fieldType" is not supported""")
           // TODO - unsupported primitive check (NtH)
           //case _ if baseTypes.isEmpty => throw new UnsupportedTypeException(fieldName, s"""Type "$fieldType" is not supported""")
@@ -135,6 +135,7 @@ object CompileTimeReaderWriter {
           val seq = readSequence(c)(q"field.elements.toArray", Some(typeArg.get.typeArgs.head),
             typeArg.get.typeSymbol.name.toString)
           q"Some($seq)"
+        case "Option" => throw new UnsupportedTypeException("", "Options of options are not supported")
         case _ =>
           val src = q"field.asInstanceOf[JsonObject]"
           q"Some(${readObject(c)(typeArg.get, src)})"
