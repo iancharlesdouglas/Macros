@@ -1,6 +1,6 @@
 package json
 
-import json.exceptions.{InvalidObjectFormatException, UnsupportedTypeException}
+import json.exceptions.{InvalidObjectFormatException, UnsupportedRefTypeException, UnsupportedTypeException}
 
 import language.experimental.macros
 import reflect.macros.blackbox.Context
@@ -15,19 +15,20 @@ object CompileTimeReaderWriter {
 
     import c.universe._
 
-    reify {
-      val json = c.prefix.splice.asInstanceOf[Extensions.StringExtensions].json
-      val objType = weakTypeOf[T]
+    val json = reify {
+      c.prefix.splice.asInstanceOf[Typer.JsonString].text
+    }
 
-      objType.typeSymbol.name.toString match {
-        case "Array" | "List" | "Vector" | "Seq" => {
-          readSequence(c)(q"import json._; reader.JsonReader.read($json).elements.toArray",
-            Some(objType.typeArgs.head),
-            objType.typeSymbol.name.toString)
-        }
-        case _ => readObject(c)(objType, q"import json._; reader.JsonReader.read($json)")
+    val objType = weakTypeOf[T]
+
+    objType.typeSymbol.name.toString match {
+      case "Array" | "List" | "Vector" | "Seq" => {
+        readSequence(c)(q"import json._; reader.JsonReader.read($json).elements.toArray",
+          Some(objType.typeArgs.head),
+          objType.typeSymbol.name.toString)
       }
-    }.tree
+      case _ => readObject(c)(objType, q"import json._; reader.JsonReader.read($json)")
+    }
   }
 
   def toJson_impl[T: c.WeakTypeTag](c: Context)(obj: c.Expr[T]): c.Tree = {
@@ -87,6 +88,9 @@ object CompileTimeReaderWriter {
 
     import c.universe._
 
+    if (!tpe.baseClasses.find(_.name.toString == "Product").isDefined)
+      throw new UnsupportedRefTypeException(tpe.typeSymbol.name.toString, "this type is not a case class")
+
     val fields = classMembers(c)(tpe)
 
     val className = tpe.typeSymbol.name.toString
@@ -115,10 +119,8 @@ object CompileTimeReaderWriter {
           case "Option" => readOption(c)(q"source.elements.find(_.elementId == $fieldName).get", typeArg)
           case "Array" | "List" | "Vector" | "Seq" =>
             readSequence(c)(q"source.elements.find(_.elementId == $fieldName).get.elements.toArray", typeArg, fieldType)
-          //case "Any" | "AnyVal" | "AnyRef" => throw new UnsupportedTypeException(fieldName, s"""Type "$fieldType" is not supported""")
-          //case _ if baseTypes.find(_.name.toString == "AnyVal").isDefined => throw new UnsupportedTypeException(fieldName, s"""Type "$fieldType" is not supported""")
-          // TODO - unsupported primitive check (NtH)
-          //case _ if baseTypes.isEmpty => throw new UnsupportedTypeException(fieldName, s"""Type "$fieldType" is not supported""")
+          case "Object" if !baseTypes.map(_.name.toString).contains("Product") =>
+            throw new UnsupportedTypeException(fieldName, s"""Type "${fieldTpe.typeSymbol.alternatives.head.name.toString}" is not supported""")
           case _ =>
             val src = q"source.elements.find(_.elementId == $fieldName).get.asInstanceOf[JsonObject]"
             q"${readObject(c)(fieldTpe, src)}"

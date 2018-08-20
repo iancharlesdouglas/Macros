@@ -8,14 +8,14 @@ class CaseClassReaderTests extends FlatSpec with Matchers {
 
   it should "read a simple JSON object into the fields of a case class object" in {
 
+    import Typer._
+
     case class Thing(id: Int, name: String, status: Long, typeId: Short, code: Byte,
                      roughPrice: Float, price: Double, char: Char, active: Boolean,
                      inactive: Boolean)
 
-    val json = """{"id":1,"name":"One","status":10,"typeId":3,"code":2,""" +
-      """"roughPrice":1.33,"price":1.3,"char":"X","active":true,"inactive":false}"""
-
-    val thing = fromJson[Thing](json)
+    val thing = ("""{"id":1,"name":"One","status":10,"typeId":3,"code":2,""" +
+      """"roughPrice":1.33,"price":1.3,"char":"X","active":true,"inactive":false}""").jsonTo[Thing]
 
     thing shouldBe Thing(1, "One", 10L, 3.toShort, 2.toByte, 1.33F, 1.30, 'X', true, false)
   }
@@ -413,24 +413,20 @@ class CaseClassReaderTests extends FlatSpec with Matchers {
 
   it should "read an array of optional ints" in {
 
-    val things = fromJson[Array[Option[Int]]]("""[1,null,2,null,3]""")
+    import Typer._
+
+    val things = """[1,null,2,null,3]""".jsonTo[Array[Option[Int]]]
 
     things shouldBe Array(Some(1), None, Some(2), None, Some(3))
   }
 
-  it should "x" in {
+  it should "read a case class object directly from a JSON string via a string extension method" in {
 
-    import Extensions._
+    import Typer._
 
     case class Thing(id: Int)
 
-    val js = """{"id":1}"""
-    val thing = js.jsonTo[Thing]
+    val thing = """{"id":1}""".jsonTo[Thing]
+    thing.id shouldBe 1
   }
-  /*it should "prevent a member of type Any" in {
-
-    case class Thing(id: Any)
-
-    val thing = fromJson[Thing]("""{"id":1}""")
-  }*/
 }
