@@ -418,6 +418,15 @@ class CaseClassReaderTests extends FlatSpec with Matchers {
     things shouldBe Array(Some(1), None, Some(2), None, Some(3))
   }
 
+  it should "x" in {
+
+    import Extensions._
+
+    case class Thing(id: Int)
+
+    val js = """{"id":1}"""
+    val thing = js.jsonTo[Thing]
+  }
   /*it should "prevent a member of type Any" in {
 
     case class Thing(id: Any)

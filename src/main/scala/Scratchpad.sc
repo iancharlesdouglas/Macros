@@ -67,3 +67,7 @@ fromJson[Array[Int]](arr)
 //case class Blah(id: Any)
 //fromJson[Blah]("""{"id":1}""")
 
+import json.Extensions._
+
+val js = """{"id":1}"""
+js.jsonTo[Title]

@@ -11,6 +11,25 @@ object CompileTimeReaderWriter {
 
   def toJson[T](obj: T): String = macro toJson_impl[T]
 
+  def jsonTo_impl[T: c.WeakTypeTag](c: Context): c.Tree = {
+
+    import c.universe._
+
+    reify {
+      val json = c.prefix.splice.asInstanceOf[Extensions.StringExtensions].json
+      val objType = weakTypeOf[T]
+
+      objType.typeSymbol.name.toString match {
+        case "Array" | "List" | "Vector" | "Seq" => {
+          readSequence(c)(q"import json._; reader.JsonReader.read($json).elements.toArray",
+            Some(objType.typeArgs.head),
+            objType.typeSymbol.name.toString)
+        }
+        case _ => readObject(c)(objType, q"import json._; reader.JsonReader.read($json)")
+      }
+    }.tree
+  }
+
   def toJson_impl[T: c.WeakTypeTag](c: Context)(obj: c.Expr[T]): c.Tree = {
 
     import c.universe._
