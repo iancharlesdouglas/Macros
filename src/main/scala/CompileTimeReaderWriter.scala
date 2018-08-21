@@ -9,15 +9,11 @@ import reflect.macros.blackbox.Context
   */
 object CompileTimeReaderWriter {
 
-  def toJson[T](obj: T): String = macro toJson_impl[T]
-
   def jsonTo_impl[T: c.WeakTypeTag](c: Context): c.Tree = {
 
     import c.universe._
 
-    val json = reify {
-      c.prefix.splice.asInstanceOf[Typer.JsonString].text
-    }
+    val json = reify(c.prefix.splice.asInstanceOf[Typer.JsonString].text)
 
     val objType = weakTypeOf[T]
 
@@ -30,6 +26,47 @@ object CompileTimeReaderWriter {
       case _ => readObject(c)(objType, q"import json._; reader.JsonReader.read($json)")
     }
   }
+
+  def json_impl[T: c.WeakTypeTag](c: Context): c.Tree = {
+
+    import c.universe._
+
+    val obj = reify {
+      c.prefix.splice.asInstanceOf[Typer.JsonRef[T]].obj
+    }
+
+    val objType = weakTypeOf[T];
+    val objTypeName = objType.erasure.typeSymbol.name.toString
+    val iterable = objType.baseClasses.find(_.typeSignature.typeSymbol.name.toString == "Iterable")
+
+    val statements =
+      if (objTypeName == "Array" || iterable.isDefined) {
+
+        val typeArg =
+          if (objType.resultType.typeArgs.isEmpty)
+            objType.erasure.resultType.typeArgs.headOption
+          else
+            objType.resultType.typeArgs.headOption
+
+        val elements = q"..$obj"
+        val values = sequenceElements(c)(typeArg, elements)
+
+        q"""new json.JsonArray("", $values)"""
+
+      } else {
+
+        q"""
+           if ($obj == null)
+             json.JsonNull()
+           else
+             json.JsonObject(..${objectMembers(c)(obj.actualType/*weakTypeOf[T]*/, obj)})
+         """
+      }
+
+    q"""json.writer.JsonWriter.write(json.writer.DefaultWriteContext())($statements)"""
+  }
+
+  def toJson[T](obj: T): String = macro toJson_impl[T]
 
   def toJson_impl[T: c.WeakTypeTag](c: Context)(obj: c.Expr[T]): c.Tree = {
 

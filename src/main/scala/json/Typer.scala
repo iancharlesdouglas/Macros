@@ -19,6 +19,11 @@ object Typer {
       */
     def jsonTo[T]: T = macro CompileTimeReaderWriter.jsonTo_impl[T]
   }
+
+  implicit class JsonRef[T](val obj: T) {
+
+    def json[T]: String = macro CompileTimeReaderWriter.json_impl[T]
+  }
 }
 
 
