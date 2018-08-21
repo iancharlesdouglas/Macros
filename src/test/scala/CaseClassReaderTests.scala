@@ -22,168 +22,193 @@ class CaseClassReaderTests extends FlatSpec with Matchers {
 
   it should "read a nested JSON object into the fields of a case class object" in {
 
+    import Typer._
+
     case class Country(id: Int, name: String)
 
     case class City(id: Int, name: String, country: Country)
 
     case class Place(id: Int, city: City)
 
-    val place = fromJson[Place](
-      """{"id":1,"city":{"id":1,"name":"London","country":{"id":1,"name":"UK"}}}"""
-    )
+    val place = """{"id":1,"city":{"id":1,"name":"London","country":{"id":1,"name":"UK"}}}""".jsonTo[Place]
+
     place shouldBe Place(1, City(1, "London", Country(1, "UK")))
   }
 
-  it should "read a nullable Int field into a case class object" in {
+  it should "read an optional Int field into a case class object" in {
+
+    import Typer._
 
     case class Thing(id: Int, size: Option[Int])
 
-    val thing = fromJson[Thing]("""{"id":1,"size":10}""")
+    val thing = """{"id":1,"size":10}""".jsonTo[Thing]
 
     thing shouldBe Thing(1, Some(10))
 
-    val thingWithNull = fromJson[Thing]("""{"id":1,"size":null}""")
+    val thingWithNull = """{"id":1,"size":null}""".jsonTo[Thing]
 
     thingWithNull shouldBe Thing(1, None)
   }
 
-  it should "read a nullable Long field into a case class object" in {
+  it should "read an optional Long field into a case class object" in {
+
+    import Typer._
 
     case class Thing(id: Int, size: Option[Long])
 
-    val thing = fromJson[Thing]("""{"id":1,"size":10}""")
+    val thing = """{"id":1,"size":10}""".jsonTo[Thing]
 
     thing shouldBe Thing(1, Some(10L))
 
-    val thingWithNull = fromJson[Thing]("""{"id":1,"size":null}""")
+    val thingWithNull = """{"id":1,"size":null}""".jsonTo[Thing]
 
     thingWithNull shouldBe Thing(1, None)
   }
 
-  it should "read a nullable Short field into a case class object" in {
+  it should "read an optional Short field into a case class object" in {
+
+    import Typer._
 
     case class Thing(id: Int, size: Option[Short])
 
-    val thing = fromJson[Thing]("""{"id":1,"size":10}""")
+    val thing = """{"id":1,"size":10}""".jsonTo[Thing]
 
     thing shouldBe Thing(1, Some(10.toShort))
 
-    val thingWithNull = fromJson[Thing]("""{"id":1,"size":null}""")
+    val thingWithNull = """{"id":1,"size":null}""".jsonTo[Thing]
 
     thingWithNull shouldBe Thing(1, None)
   }
 
-  it should "read a nullable Byte field into a case class object" in {
+  it should "read an optional Byte field into a case class object" in {
+
+    import Typer._
 
     case class Thing(id: Int, size: Option[Byte])
 
-    val thing = fromJson[Thing]("""{"id":1,"size":10}""")
+    val thing = """{"id":1,"size":10}""".jsonTo[Thing]
 
     thing shouldBe Thing(1, Some(10.toByte))
 
-    val thingWithNull = fromJson[Thing]("""{"id":1,"size":null}""")
+    val thingWithNull = """{"id":1,"size":null}""".jsonTo[Thing]
 
     thingWithNull shouldBe Thing(1, None)
   }
 
-  it should "read a nullable Float field into a case class object" in {
+  it should "read an optional Float field into a case class object" in {
+
+    import Typer._
 
     case class Thing(id: Int, size: Option[Float])
 
-    val thing = fromJson[Thing]("""{"id":1,"size":10}""")
+    val thing = """{"id":1,"size":10}""".jsonTo[Thing]
 
     thing shouldBe Thing(1, Some(10F))
 
-    val thingWithNull = fromJson[Thing]("""{"id":1,"size":null}""")
+    val thingWithNull = """{"id":1,"size":null}""".jsonTo[Thing]
 
     thingWithNull shouldBe Thing(1, None)
   }
 
-  it should "read a nullable Double field into a case class object" in {
+  it should "read an optional Double field into a case class object" in {
+
+    import Typer._
 
     case class Thing(id: Int, size: Option[Double])
 
-    val thing = fromJson[Thing]("""{"id":1,"size":10}""")
+    val thing = """{"id":1,"size":10}""".jsonTo[Thing]
 
     thing shouldBe Thing(1, Some(10.0))
 
-    val thingWithNull = fromJson[Thing]("""{"id":1,"size":null}""")
+    val thingWithNull = """{"id":1,"size":null}""".jsonTo[Thing]
 
     thingWithNull shouldBe Thing(1, None)
   }
 
-  it should "read a nullable String field into a case class object" in {
+  it should "read an optional String field into a case class object" in {
+
+    import Typer._
 
     case class Thing(id: Int, size: Option[String])
 
-    val thing = fromJson[Thing]("""{"id":1,"size":"One"}""")
+    val thing = """{"id":1,"size":"One"}""".jsonTo[Thing]
 
     thing shouldBe Thing(1, Some("One"))
 
-    val thingWithNull = fromJson[Thing]("""{"id":1,"size":null}""")
+    val thingWithNull = """{"id":1,"size":null}""".jsonTo[Thing]
 
     thingWithNull shouldBe Thing(1, None)
   }
 
-  it should "read a nullable Char field into a case class object" in {
+  it should "read an optional Char field into a case class object" in {
+
+    import Typer._
 
     case class Thing(id: Int, size: Option[Char])
 
-    val thing = fromJson[Thing]("""{"id":1,"size":"O"}""")
+    val thing = """{"id":1,"size":"O"}""".jsonTo[Thing]
 
     thing shouldBe Thing(1, Some('O'))
 
-    val thingWithNull = fromJson[Thing]("""{"id":1,"size":null}""")
+    val thingWithNull = """{"id":1,"size":null}""".jsonTo[Thing]
 
     thingWithNull shouldBe Thing(1, None)
   }
 
-  it should "read a nullable Char field that contains more than one character into a case class object as a single character" in {
+  it should "read an optional Char field that contains more than one character into a case class object as a single character" in {
+
+    import Typer._
 
     case class Thing(id: Int, size: Option[Char])
 
-    val thing = fromJson[Thing]("""{"id":1,"size":"OPQ"}""")
+    val thing = """{"id":1,"size":"OPQ"}""".jsonTo[Thing]
 
     thing shouldBe Thing(1, Some('O'))
   }
 
-  it should "read a nullable Boolean field into a case class object" in {
+  it should "read an optional Boolean field into a case class object" in {
+
+    import Typer._
 
     case class Thing(id: Int, size: Option[Boolean])
 
-    val thing = fromJson[Thing]("""{"id":1,"size":true}""")
+    val thing = """{"id":1,"size":true}""".jsonTo[Thing]
 
     thing shouldBe Thing(1, Some(true))
 
-    val thingWithNull = fromJson[Thing]("""{"id":1,"size":null}""")
+    val thingWithNull = """{"id":1,"size":null}""".jsonTo[Thing]
 
     thingWithNull shouldBe Thing(1, None)
 
-    val thingWithFalse = fromJson[Thing]("""{"id":1,"size":false}""")
+    val thingWithFalse = """{"id":1,"size":false}""".jsonTo[Thing]
 
     thingWithFalse shouldBe Thing(1, Some(false))
   }
 
-  it should "read a nullable object field into a case class object" in {
+  it should "read an optional object field into a case class object" in {
+
+    import Typer._
 
     case class Place(id: Int, name: String)
 
     case class Thing(id: Int, place: Option[Place])
 
-    val thing = fromJson[Thing]("""{"id":1,"place":{"id":1,"name":"One"}}""")
+    val thing = """{"id":1,"place":{"id":1,"name":"One"}}""".jsonTo[Thing]
 
     thing shouldBe Thing(1, Some(Place(1, "One")))
 
-    val nullPlaceThing = fromJson[Thing]("""{"id":1,"place":null}""")
+    val nullPlaceThing = """{"id":1,"place":null}""".jsonTo[Thing]
 
     nullPlaceThing shouldBe Thing(1, None)
   }
 
   it should "read an array of Int values into a field of a case class object" in {
 
+    import Typer._
+
     case class Thing(id: Int, places: Array[Int])
 
-    val thing = fromJson[Thing]("""{"id":1,"places":[1,2,3]}""")
+    val thing = """{"id":1,"places":[1,2,3]}""".jsonTo[Thing]
 
     thing.id shouldBe 1
     thing.places shouldBe Array(1, 2, 3)
@@ -191,9 +216,11 @@ class CaseClassReaderTests extends FlatSpec with Matchers {
 
   it should "read an array of Long values into a field of a case class object" in {
 
+    import Typer._
+
     case class Thing(id: Int, places: Array[Long])
 
-    val thing = fromJson[Thing]("""{"id":1,"places":[1,2,3]}""")
+    val thing = """{"id": 1, "places": [1, 2, 3]}""".jsonTo[Thing]
 
     thing.id shouldBe 1
     thing.places shouldBe Array(1L, 2L, 3L)
@@ -201,9 +228,11 @@ class CaseClassReaderTests extends FlatSpec with Matchers {
 
   it should "read an array of Short values into a field of a case class object" in {
 
+    import Typer._
+
     case class Thing(id: Int, places: Array[Short])
 
-    val thing = fromJson[Thing]("""{"id":1,"places":[1,2,3]}""")
+    val thing = """{"id":1,"places":[1,2,3]}""".jsonTo[Thing]
 
     thing.id shouldBe 1
     thing.places shouldBe Array(1.toShort, 2.toShort, 3.toShort)
@@ -211,9 +240,11 @@ class CaseClassReaderTests extends FlatSpec with Matchers {
 
   it should "read an array of Byte values into a field of a case class object" in {
 
+    import Typer._
+
     case class Thing(id: Int, places: Array[Byte])
 
-    val thing = fromJson[Thing]("""{"id":1,"places":[1,2,3]}""")
+    val thing = """{"id":1,"places":[1,2,3]}""".jsonTo[Thing]
 
     thing.id shouldBe 1
     thing.places shouldBe Array(1.toByte, 2.toByte, 3.toByte)
@@ -221,9 +252,11 @@ class CaseClassReaderTests extends FlatSpec with Matchers {
 
   it should "read an array of Float values into a field of a case class object" in {
 
+    import Typer._
+
     case class Thing(id: Int, places: Array[Float])
 
-    val thing = fromJson[Thing]("""{"id":1,"places":[1,2,3]}""")
+    val thing = """{"id":1,"places":[1,2,3]}""".jsonTo[Thing]
 
     thing.id shouldBe 1
     thing.places shouldBe Array(1F, 2F, 3F)
@@ -231,9 +264,11 @@ class CaseClassReaderTests extends FlatSpec with Matchers {
 
   it should "read an array of Double values into a field of a case class object" in {
 
+    import Typer._
+
     case class Thing(id: Int, places: Array[Double])
 
-    val thing = fromJson[Thing]("""{"id":1,"places":[1,2,3]}""")
+    val thing = """{"id":1,"places":[1,2,3]}""".jsonTo[Thing]
 
     thing.id shouldBe 1
     thing.places shouldBe Array(1.0, 2.0, 3.0)
@@ -241,9 +276,11 @@ class CaseClassReaderTests extends FlatSpec with Matchers {
 
   it should "read an array of String values into a field of a case class object" in {
 
+    import Typer._
+
     case class Thing(id: Int, places: Array[String])
 
-    val thing = fromJson[Thing]("""{"id":1,"places":["1","2","3"]}""")
+    val thing = """{"id":1,"places":["1","2","3"]}""".jsonTo[Thing]
 
     thing.id shouldBe 1
     thing.places shouldBe Array("1", "2", "3")
@@ -251,9 +288,11 @@ class CaseClassReaderTests extends FlatSpec with Matchers {
 
   it should "read an array of Char values into a field of a case class object" in {
 
+    import Typer._
+
     case class Thing(id: Int, places: Array[Char])
 
-    val thing = fromJson[Thing]("""{"id":1,"places":["1","2","3"]}""")
+    val thing = """{"id":1,"places":["1","2","3"]}""".jsonTo[Thing]
 
     thing.id shouldBe 1
     thing.places shouldBe Array('1', '2', '3')
@@ -261,9 +300,11 @@ class CaseClassReaderTests extends FlatSpec with Matchers {
 
   it should "read an array of Boolean values into a field of a case class object" in {
 
+    import Typer._
+
     case class Thing(id: Int, places: Array[Boolean])
 
-    val thing = fromJson[Thing]("""{"id":1,"places":[true,false]}""")
+    val thing = """{"id":1,"places":[true,false]}""".jsonTo[Thing]
 
     thing.id shouldBe 1
     thing.places shouldBe Array(true, false)
@@ -271,10 +312,12 @@ class CaseClassReaderTests extends FlatSpec with Matchers {
 
   it should "read an array of case class objects into a field of a parent case class object" in {
 
+    import Typer._
+
     case class Place(id: Int, name: String)
     case class Thing(id: Int, places: Array[Place])
 
-    val thing = fromJson[Thing]("""{"id":1,"places":[{"id":1,"name":"UK"},{"id":2,"name":"Eire"}]}""")
+    val thing = """{"id":1,"places":[{"id":1,"name":"UK"},{"id":2,"name":"Eire"}]}""".jsonTo[Thing]
 
     thing.places.size shouldBe 2
     thing.places(0) shouldBe Place(1, "UK")
@@ -283,9 +326,11 @@ class CaseClassReaderTests extends FlatSpec with Matchers {
 
   it should "read a List of Int values into a field of a case class object" in {
 
+    import Typer._
+
     case class Thing(id: Int, places: List[Int])
 
-    val thing = fromJson[Thing]("""{"id":1,"places":[1,2]}""")
+    val thing = """{"id":1,"places":[1,2]}""".jsonTo[Thing]
 
     thing.id shouldBe 1
     thing.places shouldBe List(1, 2)
@@ -293,9 +338,11 @@ class CaseClassReaderTests extends FlatSpec with Matchers {
 
   it should "read a Vector of Int values into a field of a case class object" in {
 
+    import Typer._
+
     case class Thing(id: Int, places: Vector[Int])
 
-    val thing = fromJson[Thing]("""{"id":1,"places":[1,2]}""")
+    val thing = """{"id":1,"places":[1,2]}""".jsonTo[Thing]
 
     thing.id shouldBe 1
     thing.places shouldBe Vector(1, 2)
@@ -303,24 +350,32 @@ class CaseClassReaderTests extends FlatSpec with Matchers {
 
   it should "read a Seq of Int values into a field of a case class object" in {
 
+    import Typer._
+
     case class Thing(id: Int, places: Seq[Int])
 
-    val thing = fromJson[Thing]("""{"id":1,"places":[1,2]}""")
+    val thing = """{"id":1,"places":[1,2]}""".jsonTo[Thing]
 
     thing.id shouldBe 1
     thing.places shouldBe Seq(1, 2)
   }
 
   it should "read an array of Int values from a root-level array" in {
-    val array = fromJson[Array[Int]]("[1,2,3]")
+
+    import Typer._
+
+    val array = "[1,2,3]".jsonTo[Array[Int]]
+
     array shouldBe Array(1, 2, 3)
   }
 
   it should "read an optional array of Int values into a field of a case class object" in {
 
+    import Typer._
+
     case class Thing(id:Int, places: Option[Array[Int]])
 
-    val thing = fromJson[Thing]("""{"id":1,"places":[1,2,3]}""")
+    val thing = """{"id":1,"places":[1,2,3]}""".jsonTo[Thing]
 
     thing.id shouldBe 1
     thing.places.get shouldBe Array(1, 2, 3)
@@ -328,9 +383,11 @@ class CaseClassReaderTests extends FlatSpec with Matchers {
 
   it should "read a null array as the value None for an optional array field of a case class object" in {
 
+    import Typer._
+
     case class Thing(id: Int, places: Option[Array[Int]])
 
-    val thing = fromJson[Thing]("""{"id":1,"places":null}""")
+    val thing = """{"id":1,"places":null}""".jsonTo[Thing]
 
     thing.id shouldBe 1
     thing.places shouldBe None
@@ -338,10 +395,12 @@ class CaseClassReaderTests extends FlatSpec with Matchers {
 
   it should "read an optional list of objects into a field of a case class object" in {
 
+    import Typer._
+
     case class Place(id: Int, name: String)
     case class Thing(id: Int, places: Option[Array[Place]])
 
-    val thing = fromJson[Thing]("""{"id":1,"places":[{"id":1,"name":"London"},{"id":2,"name":"UK"}]}""")
+    val thing = """{"id":1,"places":[{"id":1,"name":"London"},{"id":2,"name":"UK"}]}""".jsonTo[Thing]
 
     thing.id shouldBe 1
     thing.places.get.size shouldBe 2
@@ -353,9 +412,11 @@ class CaseClassReaderTests extends FlatSpec with Matchers {
 
   it should "read an optional vector of float values into a field of a case class object" in {
 
+    import Typer._
+
     case class Thing(id: Int, rates: Option[Vector[Float]])
 
-    val thing = fromJson[Thing]("""{"id":1,"rates":[1.001, 2.002]}""")
+    val thing = """{"id":1,"rates":[1.001, 2.002]}""".jsonTo[Thing]
 
     thing.id shouldBe 1
     thing.rates.get shouldBe Vector(1.001F, 2.002F)
@@ -363,9 +424,11 @@ class CaseClassReaderTests extends FlatSpec with Matchers {
 
   it should "read an optional seq of double values into a field of a case class object" in {
 
+    import Typer._
+
     case class Thing(id: Int, prices: Option[Seq[Double]])
 
-    val thing = fromJson[Thing]("""{"id":1,"prices":[10.01, 20.02]}""")
+    val thing = """{"id":1,"prices":[10.01, 20.02]}""".jsonTo[Thing]
 
     thing.id shouldBe 1
     thing.prices.get shouldBe Seq(10.01, 20.02)
@@ -373,9 +436,11 @@ class CaseClassReaderTests extends FlatSpec with Matchers {
 
   it should "read an array of arrays into a field of a case class object" in {
 
+    import Typer._
+
     case class Thing(id: Int, combinations: Array[Array[Int]])
 
-    val thing = fromJson[Thing]("""{"id":1,"combinations":[[1,2],[1,3]]}""")
+    val thing = """{"id":1,"combinations":[[1,2],[1,3]]}""".jsonTo[Thing]
 
     thing.id shouldBe 1
     thing.combinations shouldBe Array(Array(1, 2), Array(1, 3))
@@ -383,9 +448,11 @@ class CaseClassReaderTests extends FlatSpec with Matchers {
 
   it should "read an array of lists into a field of a case class object" in {
 
+    import Typer._
+
     case class Thing(id: Int, combinations: Array[List[Boolean]])
 
-    val thing = fromJson[Thing]("""{"id":1,"combinations":[[true, false],[false, false]]}""")
+    val thing = """{"id": 1, "combinations": [[true, false], [false, false]]}""".jsonTo[Thing]
 
     thing.id shouldBe 1
     thing.combinations shouldBe Array(List(true, false), List(false, false))
@@ -393,9 +460,11 @@ class CaseClassReaderTests extends FlatSpec with Matchers {
 
   it should "read a list of vectors into a field of a case class object" in {
 
+    import Typer._
+
     case class Thing(id: Int, combinations: List[Vector[Float]])
 
-    val thing = fromJson[Thing]("""{"id":1,"combinations":[[1.01,0.0002],[200.04,2992.0,2992.31]]}""")
+    val thing = """{"id":1,"combinations":[[1.01, 0.0002], [200.04, 2992.0, 2992.31]]}""".jsonTo[Thing]
 
     thing.id shouldBe 1
     thing.combinations shouldBe List(Vector(1.01F, 0.0002F), Vector(200.04F, 2992F, 2992.31F))
@@ -403,9 +472,11 @@ class CaseClassReaderTests extends FlatSpec with Matchers {
 
   it should "read a vector of seqs into a field of a case class object" in {
 
+    import Typer._
+
     case class Thing(id: Int, flags: Vector[Seq[Boolean]])
 
-    val thing = fromJson[Thing]("""{"id":1,"flags":[[true,false], [false, false, false]]}""")
+    val thing = """{"id":1,"flags":[[true,false], [false, false, false]]}""".jsonTo[Thing]
 
     thing.id shouldBe 1
     thing.flags shouldBe Vector(Seq(true, false), Seq(false, false, false))
@@ -415,7 +486,7 @@ class CaseClassReaderTests extends FlatSpec with Matchers {
 
     import Typer._
 
-    val things = """[1,null,2,null,3]""".jsonTo[Array[Option[Int]]]
+    val things = """[1, null, 2, null, 3]""".jsonTo[Array[Option[Int]]]
 
     things shouldBe Array(Some(1), None, Some(2), None, Some(3))
   }

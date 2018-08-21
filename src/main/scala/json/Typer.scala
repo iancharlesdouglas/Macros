@@ -5,6 +5,10 @@ import reflect.macros.blackbox.Context
 
 object Typer {
 
+  /**
+    * Extension methods for String type.
+    * @param text String value
+    */
   implicit class JsonString(val text: String) {
 
     /**
