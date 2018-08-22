@@ -24,8 +24,8 @@ class CaseClassWriterTests extends FlatSpec with Matchers {
     val customer = Customer(1, Some(true), "ACME Corp.", true, Array(Thing(1), Thing(2)),
       City(1, "London", Country(1, "UK")))
 
-    val js = customer.json
-    //val js = toJson(customer)
+    //val js = customer.json
+    val js = toJson(customer)
 
     js shouldBe """{"id":1,"status":true,"name":"ACME Corp.","isActive":true,"flags":[{"id":1},{"id":2}],""" +
       """"city":{"id":1,"name":"London","country":{"id":1,"name":"UK"}}}"""

@@ -1,3 +1,5 @@
+import json.CompileTimeReaderWriter
+
 import language.experimental.macros
 import json.CompileTimeReaderWriter._
 
@@ -71,3 +73,5 @@ import json.Typer._
 
 val js = """{"id":1}"""
 js.jsonTo[Title]
+
+CompileTimeReaderWriter.write(Array(1, 2))
