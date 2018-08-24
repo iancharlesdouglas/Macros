@@ -22,7 +22,9 @@ object Typer {
 
   implicit class JsonRef[T](val obj: T) {
 
-    def json[T]: String = macro CompileTimeReaderWriter.json_impl[T]
+    def json[T]: String = macro CompileTimeReaderWriter.json_impl[T]//(obj)
+
+    //private def toJs(objc: T): String = macro CompileTimeReaderWriter.json_impl[T](obj)
   }
 }
 

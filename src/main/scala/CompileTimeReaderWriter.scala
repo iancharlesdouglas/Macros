@@ -86,11 +86,15 @@ object CompileTimeReaderWriter {
 
     import c.universe._
 
-    val obj = reify {
-      c.prefix.splice.asInstanceOf[Typer.JsonRef[T]].obj
-    }
+    val wrapper = reify {
+      c.prefix.splice//.asInstanceOf[Typer.JsonRef[T]].obj
+    }.tree
 
-    val objType = weakTypeOf[T];
+    val obj = q"$wrapper.obj.asInstanceOf[Thing]"
+    //val splc = reify(c.prefix.splice)
+    //val spc2 = c.prefix.actualType.typeArgs.head
+
+    val objType = c.prefix.actualType.typeArgs.head  //weakTypeOf[T];
     val objTypeName = objType.erasure.typeSymbol.name.toString
     val iterable = objType.baseClasses.find(_.typeSignature.typeSymbol.name.toString == "Iterable")
 
@@ -114,7 +118,7 @@ object CompileTimeReaderWriter {
            if ($obj == null)
              json.JsonNull()
            else
-             json.JsonObject(..${objectMembers(c)(obj.actualType/*weakTypeOf[T]*/, obj)})
+             json.JsonObject(..${objectMembers(c)(objType/*weakTypeOf[T]*/, c.Expr(obj))})
          """
       }
 
