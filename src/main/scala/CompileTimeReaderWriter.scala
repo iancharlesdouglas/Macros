@@ -5,64 +5,7 @@ import json.exceptions.{InvalidObjectFormatException, UnsupportedRefTypeExceptio
 import language.experimental.macros
 import reflect.macros.blackbox.Context
 
-trait JsWriter[T] {
-  def write(value: T): JsonElement
-  def write(id: String, value: T): JsonElement
-}
-
 object CompileTimeReaderWriter {
-
-  implicit object ByteWriter extends JsWriter[Byte] {
-    def write(value: Byte): JsonElement = JsonNumber(value.toInt)
-    def write(id: String, value: Byte): JsonElement = JsonNumber(id, value.toInt)
-  }
-
-  implicit object ShortWriter extends JsWriter[Short] {
-    def write(value: Short): JsonElement = JsonNumber(value.toInt)
-    def write(id: String, value: Short): JsonElement = JsonNumber(id, value.toInt)
-  }
-
-  implicit object IntWriter extends JsWriter[Int] {
-    def write(value: Int): JsonElement = JsonNumber(value)
-    def write(id: String, value: Int): JsonElement = JsonNumber(id, value)
-  }
-
-  implicit object LongWriter extends JsWriter[Long] {
-    def write(value: Long): JsonElement = JsonNumber(value)
-    def write(id: String, value: Long): JsonElement = JsonNumber(id, value)
-  }
-
-  implicit object FloatWriter extends JsWriter[Float] {
-    def write(value: Float): JsonElement = JsonNumber(value.toDouble)
-    def write(id: String, value: Float): JsonElement = JsonNumber(id, value.toDouble)
-  }
-
-  implicit object DoubleWriter extends JsWriter[Double] {
-    def write(value: Double): JsonElement = JsonNumber(value)
-    def write(id: String, value: Double): JsonElement = JsonNumber(id, value)
-  }
-
-  implicit object BooleanWriter extends JsWriter[Boolean] {
-    def write(value: Boolean): JsonElement = JsonBoolean(value)
-    def write(id: String, value: Boolean): JsonElement = JsonBoolean(id, value)
-  }
-
-  implicit object StringWriter extends JsWriter[String] {
-    def write(value: String): JsonElement = JsonString(value)
-    def write(id: String, value: String): JsonElement = JsonString(id, value)
-  }
-
-  implicit object CharWriter extends JsWriter[Char] {
-    def write(value: Char): JsonElement = JsonString(value)
-    def write(id: String, value: Char): JsonElement = JsonString(id, value.toString)
-  }
-
-  implicit def ArrayWriter[T: JsWriter]: JsWriter[Array[T]] = new JsWriter[Array[T]] {
-    def write(value: Array[T]) = JsonArray(value.map(implicitly[JsWriter[T]].write):_*)
-    def write(id: String, value: Array[T]) = JsonArray(id, value.map(implicitly[JsWriter[T]].write):_*)
-  }
-
-  def write[T: JsWriter](value: T): JsonElement = implicitly[JsWriter[T]].write(value)
 
   def jsonTo_impl[T: c.WeakTypeTag](c: Context): c.Tree = {
 
@@ -90,12 +33,12 @@ object CompileTimeReaderWriter {
       c.prefix.splice//.asInstanceOf[Typer.JsonRef[T]].obj
     }.tree
 
-    val obj = q"$wrapper.obj.asInstanceOf[Thing]"
     //val splc = reify(c.prefix.splice)
     //val spc2 = c.prefix.actualType.typeArgs.head
 
     val objType = c.prefix.actualType.typeArgs.head  //weakTypeOf[T];
     val objTypeName = objType.erasure.typeSymbol.name.toString
+    val obj = q"$wrapper.obj"//.asInstanceOf[${Ident(TermName(objTypeName))}]"
     val iterable = objType.baseClasses.find(_.typeSignature.typeSymbol.name.toString == "Iterable")
 
     val statements =
@@ -114,11 +57,14 @@ object CompileTimeReaderWriter {
 
       } else {
 
+        //val ob = q"val ob = $obj"
+
         q"""
-           if ($obj == null)
+            val ob = $obj
+           if (ob == null)
              json.JsonNull()
            else
-             json.JsonObject(..${objectMembers(c)(objType/*weakTypeOf[T]*/, c.Expr(obj))})
+             json.JsonObject(..${objectMembers(c)(objType, c.Expr(q"ob"))})
          """
       }
 

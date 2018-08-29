@@ -19,7 +19,7 @@ class CaseClassWriterTests extends FlatSpec with Matchers {
     js shouldBe """{"id":1}"""
   }
 
-  /*it should "write a fairly complex object correctly" in {
+  it should "write a fairly complex object correctly" in {
 
     import Typer._
 
@@ -38,13 +38,14 @@ class CaseClassWriterTests extends FlatSpec with Matchers {
       City(1, "London", Country(1, "UK")))
 
     val js = customer.json
-    //val js = toJson(customer)
 
     js shouldBe """{"id":1,"status":true,"name":"ACME Corp.","isActive":true,"flags":[{"id":1},{"id":2}],""" +
       """"city":{"id":1,"name":"London","country":{"id":1,"name":"UK"}}}"""
-  }*/
+  }
 
   it should "write an array of nested objects correctly" in {
+
+    import Typer._
 
     case class Country(name: String)
 
@@ -52,7 +53,7 @@ class CaseClassWriterTests extends FlatSpec with Matchers {
 
     val cities = Array(City(1, "London", Country("England")), City(2, "Aberdeen", Country("Scotland")))
 
-    val js = toJson(cities)
+    val js = cities.json
 
     js shouldBe """[{"id":1,"name":"London","country":{"name":"England"}},{"id":2,"name":"Aberdeen","country":{"name":"Scotland"}}]"""
   }
@@ -70,11 +71,13 @@ class CaseClassWriterTests extends FlatSpec with Matchers {
 
   it should "write an iterable within a class correctly" in {
 
+    import Typer._
+
     case class Deal(id: Int, products: List[Int])
 
     val deal = Deal(1, List(1, 2, 3))
 
-    val js = toJson(deal)
+    val js = deal.json
 
     js shouldBe """{"id":1,"products":[1,2,3]}"""
 
@@ -82,7 +85,7 @@ class CaseClassWriterTests extends FlatSpec with Matchers {
 
     val vecDeal = VecDeal(1, Vector(1, 2, 3))
 
-    val vecJs = toJson(vecDeal)
+    val vecJs = vecDeal.json
     vecJs shouldBe """{"id":1,"products":[1,2,3]}"""
   }
 
