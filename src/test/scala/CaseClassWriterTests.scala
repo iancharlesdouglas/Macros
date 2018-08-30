@@ -169,9 +169,11 @@ class CaseClassWriterTests extends FlatSpec with Matchers {
 
     itemNone.json shouldBe """{"id":1,"price":null}"""
 
-    val array = Array(BigDecimal(1000000))
+    val amount = 1000000
 
-    array.json shouldBe """[1000000]"""
+    val array = Array(BigDecimal(amount))
+
+    array.json shouldBe s"""[$amount]"""
 
     // TODO - arrays of optional values
   }
