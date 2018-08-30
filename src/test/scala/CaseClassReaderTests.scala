@@ -521,6 +521,10 @@ class CaseClassReaderTests extends FlatSpec with Matchers {
     val itemNull = """{"id":1,"price":null}""".jsonTo[ItemOptional]
 
     itemNull.price shouldBe None
+
+    val arrayOptional = """[100000,2]""".jsonTo[Array[Option[BigDecimal]]]
+
+    arrayOptional shouldBe Array(Some(BigDecimal(100000)), Some(BigDecimal(2)))
   }
 
   it should "read BigInt values correctly" in {
