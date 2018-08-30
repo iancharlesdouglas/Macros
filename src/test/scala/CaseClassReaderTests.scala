@@ -498,6 +498,28 @@ class CaseClassReaderTests extends FlatSpec with Matchers {
     case class Thing(id: Int)
 
     val thing = """{"id":1}""".jsonTo[Thing]
+
     thing.id shouldBe 1
+  }
+
+  it should "read BigDecimal values correctly" in {
+
+    import Typer._
+
+    case class Item(id: Int, price: BigDecimal)
+
+    val item = """{"id":1,"price":10"}""".jsonTo[Item]
+
+    item.price shouldBe 10
+
+    case class ItemOptional(id: Int, price: Option[BigDecimal])
+
+    val itemOptional = """{"id":1,"price":10}""".jsonTo[ItemOptional]
+
+    itemOptional.price shouldBe Some(10)
+
+    val itemNull = """{"id":1,"price":null}""".jsonTo[ItemOptional]
+
+    itemNull.price shouldBe None
   }
 }

@@ -29,16 +29,11 @@ object CompileTimeReaderWriter {
 
     import c.universe._
 
-    val wrapper = reify {
-      c.prefix.splice//.asInstanceOf[Typer.JsonRef[T]].obj
-    }.tree
+    val wrapper = reify(c.prefix.splice).tree
 
-    //val splc = reify(c.prefix.splice)
-    //val spc2 = c.prefix.actualType.typeArgs.head
-
-    val objType = c.prefix.actualType.typeArgs.head  //weakTypeOf[T];
+    val objType = c.prefix.actualType.typeArgs.head
     val objTypeName = objType.erasure.typeSymbol.name.toString
-    val obj = q"$wrapper.obj"//.asInstanceOf[${Ident(TermName(objTypeName))}]"
+    val obj = q"$wrapper.obj"
     val iterable = objType.baseClasses.find(_.typeSignature.typeSymbol.name.toString == "Iterable")
 
     val statements =
@@ -57,14 +52,12 @@ object CompileTimeReaderWriter {
 
       } else {
 
-        //val ob = q"val ob = $obj"
-
         q"""
-            val ob = $obj
-           if (ob == null)
+           val __obj = $obj
+           if (__obj == null)
              json.JsonNull()
            else
-             json.JsonObject(..${objectMembers(c)(objType, c.Expr(q"ob"))})
+             json.JsonObject(..${objectMembers(c)(objType, c.Expr(q"__obj"))})
          """
       }
 
@@ -155,6 +148,7 @@ object CompileTimeReaderWriter {
           case "Byte" => q"source.elements.find(_.elementId == $fieldName).get.asInstanceOf[JsonNumber].value.toByte"
           case "Float" => q"source.elements.find(_.elementId == $fieldName).get.asInstanceOf[JsonNumber].value.toFloat"
           case "Double" => q"source.elements.find(_.elementId == $fieldName).get.asInstanceOf[JsonNumber].value.toDouble"
+          case "BigDecimal" => q"source.elements.find(_.elementId == $fieldName).get.asInstanceOf[JsonNumber].value"
           case "String" => q"source.elements.find(_.elementId == $fieldName).get.asInstanceOf[JsonString].value"
           case "Char" => q"source.elements.find(_.elementId == $fieldName).get.asInstanceOf[JsonString].value.toCharArray()(0)"
           case "Boolean" => q"source.elements.find(_.elementId == $fieldName).get.asInstanceOf[JsonBoolean].value"
@@ -191,6 +185,7 @@ object CompileTimeReaderWriter {
         case "Byte" => q"Some(field.asInstanceOf[JsonNumber].value.toByte)"
         case "Float" => q"Some(field.asInstanceOf[JsonNumber].value.toFloat)"
         case "Double" => q"Some(field.asInstanceOf[JsonNumber].value.toDouble)"
+        case "BigDecimal" => q"Some(field.asInstanceOf[JsonNumber].value)"
         case "String" => q"Some(field.asInstanceOf[JsonString].value)"
         case "Char" => q"Some(field.asInstanceOf[JsonString].value.toCharArray()(0))"
         case "Boolean" => q"Some(field.asInstanceOf[JsonBoolean].value)"
@@ -277,7 +272,7 @@ object CompileTimeReaderWriter {
       val id = q"$fieldName"
       val value = q"$obj.$fieldTerm"
       fieldTypeName match {
-        case "Int" | "Long" | "Double" | "Float" | "Short" | "Byte" => q"json.JsonNumber($id, $value)"
+        case "Int" | "Long" | "Double" | "Float" | "Short" | "Byte" | "BigDecimal" => q"json.JsonNumber($id, $value)"
         case "String" => q"""json.JsonString($id, $value)"""
         case "Boolean" => q"json.JsonBoolean($id, $value)"
         case "Null" => q"json.JsonNull($id)"
