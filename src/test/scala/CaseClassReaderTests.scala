@@ -522,4 +522,27 @@ class CaseClassReaderTests extends FlatSpec with Matchers {
 
     itemNull.price shouldBe None
   }
+
+  it should "read BigInt values correctly" in {
+
+    import Typer._
+
+    case class Item(id: Int, price: BigInt)
+
+    val price = 1000000000
+
+    val item = s"""{"id":1,"price":$price}""".jsonTo[Item]
+
+    item.price shouldBe price
+
+    case class ItemOptional(id: Int, price: Option[BigInt])
+
+    val itemOptional = s"""{"id":1,"price":$price}""".jsonTo[ItemOptional]
+
+    itemOptional.price shouldBe Some(price)
+
+    val itemNull = """{"id":1,"price":null}""".jsonTo[ItemOptional]
+
+    itemNull.price shouldBe None
+  }
 }

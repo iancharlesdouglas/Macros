@@ -149,6 +149,7 @@ object CompileTimeReaderWriter {
           case "Float" => q"source.elements.find(_.elementId == $fieldName).get.asInstanceOf[JsonNumber].value.toFloat"
           case "Double" => q"source.elements.find(_.elementId == $fieldName).get.asInstanceOf[JsonNumber].value.toDouble"
           case "BigDecimal" => q"source.elements.find(_.elementId == $fieldName).get.asInstanceOf[JsonNumber].value"
+          case "BigInt" => q"source.elements.find(_.elementId == $fieldName).get.asInstanceOf[JsonNumber].value.toBigInt"
           case "String" => q"source.elements.find(_.elementId == $fieldName).get.asInstanceOf[JsonString].value"
           case "Char" => q"source.elements.find(_.elementId == $fieldName).get.asInstanceOf[JsonString].value.toCharArray()(0)"
           case "Boolean" => q"source.elements.find(_.elementId == $fieldName).get.asInstanceOf[JsonBoolean].value"
@@ -186,6 +187,7 @@ object CompileTimeReaderWriter {
         case "Float" => q"Some(field.asInstanceOf[JsonNumber].value.toFloat)"
         case "Double" => q"Some(field.asInstanceOf[JsonNumber].value.toDouble)"
         case "BigDecimal" => q"Some(field.asInstanceOf[JsonNumber].value)"
+        case "BigInt" => q"Some(field.asInstanceOf[JsonNumber].value.toBigInt)"
         case "String" => q"Some(field.asInstanceOf[JsonString].value)"
         case "Char" => q"Some(field.asInstanceOf[JsonString].value.toCharArray()(0))"
         case "Boolean" => q"Some(field.asInstanceOf[JsonBoolean].value)"
@@ -216,6 +218,8 @@ object CompileTimeReaderWriter {
         case "Byte" => q"$sequence.map(_.asInstanceOf[JsonNumber].value.toByte)"
         case "Float" => q"$sequence.map(_.asInstanceOf[JsonNumber].value.toFloat)"
         case "Double" => q"$sequence.map(_.asInstanceOf[JsonNumber].value.toDouble)"
+        case "BigDecimal" => q"$sequence.map(_.asInstanceOf[JsonNumber].value)"
+        case "BigInt" => q"$sequence.map(_.asInstanceOf[JsonNumber].value.toBigInt)"
         case "String" => q"$sequence.map(_.asInstanceOf[JsonString].value)"
         case "Char" => q"$sequence.map(_.asInstanceOf[JsonString].value.toCharArray()(0))"
         case "Boolean" => q"$sequence.map(_.asInstanceOf[JsonBoolean].value)"
@@ -279,7 +283,7 @@ object CompileTimeReaderWriter {
         case "Option" =>
           val typeArg = fieldTypeArg.get.typeSymbol.name.toString
           typeArg match {
-            case "Int" | "Long" | "Double" | "Float" | "Short" | "Byte" =>
+            case "Int" | "Long" | "Double" | "Float" | "Short" | "Byte" | "BigDecimal" =>
               q"if ($value.isDefined) json.JsonNumber($id, $value.get) else json.JsonNull($id)"
             case "String" => q"if ($value.isDefined) json.JsonString($id, $value.get) else json.JsonNull($id)"
             case "Boolean" => q"if ($value.isDefined) json.JsonBoolean($id, $value.get) else json.JsonNull($id)"
@@ -327,7 +331,7 @@ object CompileTimeReaderWriter {
 
     val typeArg = elementType.get.typeSymbol.name.toString
     typeArg match {
-      case "Int" | "Long" | "Double" | "Float" | "Short" | "Byte" => q"$sequence.map(json.JsonNumber(_))"
+      case "Int" | "Long" | "Double" | "Float" | "Short" | "Byte" | "BigDecimal" => q"$sequence.map(json.JsonNumber(_))"
       case "String" => q"$sequence.map(json.JsonString(_))"
       case "Boolean" => q"$sequence.map(json.JsonBoolean(_))"
       case _ => q"$sequence.map(toJsonAnon(_))"

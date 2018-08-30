@@ -43,6 +43,10 @@ class WriterTests extends FlatSpec with Matchers {
     val neg = JsonNumber(-100)
     val negResult = JsonWriter.write(DefaultWriteContext())(neg)
     negResult shouldBe "-100"
+
+    val bigDec = JsonNumber(BigDecimal(1000000))
+    val bigDecResult = JsonWriter.write(DefaultWriteContext())(bigDec)
+    bigDecResult shouldBe "1000000"
   }
 
   it should "write a string with escaped control characters" in {

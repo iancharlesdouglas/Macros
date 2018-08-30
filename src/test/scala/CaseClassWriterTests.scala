@@ -158,5 +158,23 @@ class CaseClassWriterTests extends FlatSpec with Matchers {
     val item = Item(1, BigDecimal(10))
 
     item.json shouldBe """{"id":1,"price":10}"""
+
+    case class ItemOptionalBigDec(id: Int, price: Option[BigDecimal])
+
+    val itemOptional = ItemOptionalBigDec(1, Some(BigDecimal(10)))
+
+    itemOptional.json shouldBe """{"id":1,"price":10}"""
+
+    val itemNone = ItemOptionalBigDec(1, None)
+
+    itemNone.json shouldBe """{"id":1,"price":null}"""
+
+    val array = Array(BigDecimal(1000000))
+
+    array.json shouldBe """[1000000]"""
+
+    // TODO - arrays of optional values
   }
+
+  // TODO - BigInts
 }
