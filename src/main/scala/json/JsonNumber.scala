@@ -8,6 +8,7 @@ case class JsonNumber(id: String, value: BigDecimal) extends JsonElement(id) {
 }
 
 object JsonNumber {
+
   def apply(value: BigDecimal): JsonNumber = {
     new JsonNumber("", value)
   }

@@ -173,10 +173,31 @@ class CaseClassWriterTests extends FlatSpec with Matchers {
 
     val array = Array(BigDecimal(amount))
 
-    array.json shouldBe s"""[$amount]"""
+    array.json shouldBe s"[$amount]"
 
-    // TODO - arrays of optional values
+    val arrayOptionals: Array[Option[BigDecimal]] = Array(Some(BigDecimal(amount)), None)
+
+    arrayOptionals.json shouldBe s"[$amount,null]"
   }
 
-  // TODO - BigInts
+  it should "write BigInt values correctly" in {
+
+    import Typer._
+
+    case class Item(id: Int, price: BigInt)
+
+    val item = Item(1, BigInt(100))
+
+    item.json shouldBe """{"id":1,"price":100}"""
+
+    case class ItemOptionalBigInt(id: Int, price: Option[BigInt])
+
+    val itemOptional = ItemOptionalBigInt(1, Some(BigInt(100)))
+
+    itemOptional.json shouldBe """{"id":1,"price":100}"""
+
+    val itemNone = ItemOptionalBigInt(1, None)
+
+    itemNone.json shouldBe """{"id":1,"price":null}"""
+  }
 }

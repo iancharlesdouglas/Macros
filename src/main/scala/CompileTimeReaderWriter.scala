@@ -46,7 +46,7 @@ object CompileTimeReaderWriter {
             objType.resultType.typeArgs.headOption
 
         val elements = q"..$obj"
-        val values = sequenceElements(c)(typeArg, elements)
+        val values = getSeqElements(c)(typeArg, elements)
 
         q"""new json.JsonArray("", $values)"""
 
@@ -84,7 +84,7 @@ object CompileTimeReaderWriter {
             objType.resultType.typeArgs.headOption
 
         val elements = q"..$obj"
-        val values = sequenceElements(c)(typeArg, elements)
+        val values = getSeqElements(c)(typeArg, elements)
 
         q"""new json.JsonArray("", $values)"""
 
@@ -276,7 +276,10 @@ object CompileTimeReaderWriter {
       val id = q"$fieldName"
       val value = q"$obj.$fieldTerm"
       fieldTypeName match {
-        case "Int" | "Long" | "Double" | "Float" | "Short" | "Byte" | "BigDecimal" => q"json.JsonNumber($id, $value)"
+        case "Int" | "Long" | "Double" | "Float" | "Short" | "Byte" | "BigDecimal" =>
+          q"json.JsonNumber($id, $value)"
+        case "BigInt" =>
+          q"json.JsonNumber($id, scala.math.BigDecimal($value))"
         case "String" => q"""json.JsonString($id, $value)"""
         case "Boolean" => q"json.JsonBoolean($id, $value)"
         case "Null" => q"json.JsonNull($id)"
@@ -285,6 +288,8 @@ object CompileTimeReaderWriter {
           typeArg match {
             case "Int" | "Long" | "Double" | "Float" | "Short" | "Byte" | "BigDecimal" =>
               q"if ($value.isDefined) json.JsonNumber($id, $value.get) else json.JsonNull($id)"
+            case "BigInt" =>
+              q"if ($value.isDefined) json.JsonNumber($id, scala.math.BigDecimal($value.get)) else json.JsonNull($id)"
             case "String" => q"if ($value.isDefined) json.JsonString($id, $value.get) else json.JsonNull($id)"
             case "Boolean" => q"if ($value.isDefined) json.JsonBoolean($id, $value.get) else json.JsonNull($id)"
             case _ =>
@@ -297,10 +302,10 @@ object CompileTimeReaderWriter {
                """
           }
         case "Array" =>
-          val values = sequenceElements(c)(fieldTypeArg, value)
+          val values = getSeqElements(c)(fieldTypeArg, value)
           q"new json.JsonArray($id, $values)"
         case _ if iterable.isDefined =>
-          val values = sequenceElements(c)(fieldTypeArg, value)
+          val values = getSeqElements(c)(fieldTypeArg, value)
           q"new json.JsonArray($id, $values)"
         case _ => q"json.JsonObject($id, ..${objectMembers(c)(fieldType.typeSignature, c.Expr(value))})"
       }
@@ -325,15 +330,27 @@ object CompileTimeReaderWriter {
     }.toList.reverse
   }
 
-  private def sequenceElements(c: Context)(elementType: Option[c.universe.Type], sequence: c.Tree) = {
+  private def getSeqElements(c: Context)(elementType: Option[c.universe.Type], sequence: c.Tree) = {
 
     import c.universe._
 
     val typeArg = elementType.get.typeSymbol.name.toString
     typeArg match {
-      case "Int" | "Long" | "Double" | "Float" | "Short" | "Byte" | "BigDecimal" => q"$sequence.map(json.JsonNumber(_))"
+      case "Int" | "Long" | "Double" | "Float" | "Short" | "Byte" | "BigDecimal" =>
+        q"$sequence.map(json.JsonNumber(_))"
+      case "BigInt" =>
+        q"$sequence.map(json.JsonNumber(scala.math.BigDecimal(_)))"
       case "String" => q"$sequence.map(json.JsonString(_))"
       case "Boolean" => q"$sequence.map(json.JsonBoolean(_))"
+      case "Option" | "Some" =>
+        val optTypeArg = elementType.get.typeArgs.head.typeSymbol.name.toString
+        optTypeArg match {
+          case "Int" | "Long" | "Double" | "Float" | "Short" | "Byte" | "BigDecimal" =>
+            q"$sequence.map(v => if (v.isDefined) json.JsonNumber(v.get) else json.JsonNull())"
+          case "BigInt" =>
+            q"$sequence.map(v => if (v.isDefined) json.JsonNumber(BigDecimal(v.get)) else json.JsonNull())"
+        }
+      case "None" => q"$sequence.map(json.JsonNull())"
       case _ => q"$sequence.map(toJsonAnon(_))"
     }
   }
