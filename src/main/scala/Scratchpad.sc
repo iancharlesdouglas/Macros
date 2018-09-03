@@ -72,6 +72,15 @@ fromJson[Array[Int]](arr)
 import json.Typer._
 
 val js = """{"id":1}"""
-js.jsonTo[Title]
+val ttl = js.jsonTo[Title]
+ttl.json
 
-CompileTimeReaderWriter.write(Array(1, 2))
+class X(id: Int)
+
+val x = new X(1)
+
+x.json
+
+System.out.json
+
+"""{"id":{"}""".jsonTo[Title]

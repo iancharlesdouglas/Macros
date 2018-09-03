@@ -1,6 +1,6 @@
 package json
 
-import json.exceptions.{InvalidObjectFormatException, UnsupportedRefTypeException, UnsupportedTypeException}
+import json.exceptions.{UnsupportedRefTypeException, UnsupportedTypeException}
 
 import language.experimental.macros
 import reflect.macros.blackbox.Context
@@ -123,7 +123,7 @@ object CompileTimeReaderWriter {
 
     import c.universe._
 
-    if (!tpe.baseClasses.find(_.name.toString == "Product").isDefined)
+    if (!isCaseClass(c)(tpe))
       throw new UnsupportedRefTypeException(tpe.typeSymbol.name.toString, "this type is not a case class")
 
     val fields = classMembers(c)(tpe)
@@ -156,8 +156,8 @@ object CompileTimeReaderWriter {
           case "Option" => readOption(c)(q"source.elements.find(_.elementId == $fieldName).get", typeArg)
           case "Array" | "List" | "Vector" | "Seq" =>
             readSequence(c)(q"source.elements.find(_.elementId == $fieldName).get.elements.toArray", typeArg, fieldType)
-          case "Object" if !baseTypes.map(_.name.toString).contains("Product") =>
-            throw new UnsupportedTypeException(fieldName, s"""Type "${fieldTpe.typeSymbol.alternatives.head.name.toString}" is not supported""")
+          /*case "Object" if !baseTypes.map(_.name.toString).contains("Product") =>
+            throw new UnsupportedTypeException(fieldName, s"""Type "${fieldTpe.typeSymbol.alternatives.head.name.toString}" is not supported""")*/
           case _ =>
             val src = q"source.elements.find(_.elementId == $fieldName).get.asInstanceOf[JsonObject]"
             q"${readObject(c)(fieldTpe, src)}"
@@ -329,6 +329,9 @@ object CompileTimeReaderWriter {
         field.typeSignature)
     }.toList.reverse
   }
+
+  private def isCaseClass(c: Context)(tpe: c.universe.Type): Boolean =
+    tpe.members.exists(m => m.isMethod && m.asMethod.isCaseAccessor)
 
   private def getSeqElements(c: Context)(elementType: Option[c.universe.Type], sequence: c.Tree) = {
 
