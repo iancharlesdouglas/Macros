@@ -199,5 +199,15 @@ class CaseClassWriterTests extends FlatSpec with Matchers {
     val itemNone = ItemOptionalBigInt(1, None)
 
     itemNone.json shouldBe """{"id":1,"price":null}"""
+
+    val amount = 1000000
+
+    val array = Array(BigInt(amount))
+
+    array.json shouldBe s"[$amount]"
+
+    val arrayOptionals: Array[Option[BigInt]] = Array(Some(BigInt(amount)), None)
+
+    arrayOptionals.json shouldBe s"[$amount,null]"
   }
 }

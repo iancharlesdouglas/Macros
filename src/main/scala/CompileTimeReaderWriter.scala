@@ -339,7 +339,7 @@ object CompileTimeReaderWriter {
       case "Int" | "Long" | "Double" | "Float" | "Short" | "Byte" | "BigDecimal" =>
         q"$sequence.map(json.JsonNumber(_))"
       case "BigInt" =>
-        q"$sequence.map(json.JsonNumber(scala.math.BigDecimal(_)))"
+        q"$sequence.map(value => json.JsonNumber(scala.math.BigDecimal(value)))"
       case "String" => q"$sequence.map(json.JsonString(_))"
       case "Boolean" => q"$sequence.map(json.JsonBoolean(_))"
       case "Option" | "Some" =>

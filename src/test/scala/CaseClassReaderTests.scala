@@ -548,5 +548,9 @@ class CaseClassReaderTests extends FlatSpec with Matchers {
     val itemNull = """{"id":1,"price":null}""".jsonTo[ItemOptional]
 
     itemNull.price shouldBe None
+
+    val arrayOptional = s"[$price,2]".jsonTo[Array[Option[BigInt]]]
+
+    arrayOptional shouldBe Array(Some(BigInt(price)), Some(BigInt(2)))
   }
 }
