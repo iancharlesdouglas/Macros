@@ -8,17 +8,17 @@ import json.exceptions.{InvalidArrayFormatException, InvalidObjectFormatExceptio
   */
 class ArrayReader extends Reader {
 
-  override def read(json: String, position: Integer = 0, identifier: String = ""): ElementParseResult =
+  override def read(json: String, position: Integer = 0, identifier: String = ""): ParseResult =
     readBody(json, position, JsonArray(identifier))
 
-  def readBody(json: String, position: Integer, jsonArray: JsonArray): ElementParseResult = {
+  def readBody(json: String, position: Integer, jsonArray: JsonArray): ParseResult = {
 
     /*if (position  == json.length)
       (jsonArray, position)
     else {*/
       json.charAt(position) match {
         case chr if whitespace(chr) => readBody(json, position + 1, jsonArray)
-        case ']' => new ElementParseResult(jsonArray, true, position + 1, null)
+        case ']' => new ParseResult(jsonArray, true, position + 1, null)
         case '{' =>
           val result = new ObjectReader().read(json, position + 1)
           jsonArray.elements += result.it

@@ -1,6 +1,6 @@
 package json.reader
 
-import json.{ElementParseResult, JsonString}
+import json.{ParseResult, JsonString}
 
 import scala.collection.mutable.ListBuffer
 
@@ -9,16 +9,16 @@ import scala.collection.mutable.ListBuffer
   */
 class StrReader extends Reader {
 
-  override def read(json: String, position: Integer, identifier: String): ElementParseResult =
+  override def read(json: String, position: Integer, identifier: String): ParseResult =
     readString(json, position, identifier, ListBuffer[Char]())
 
   def readString(json: String, position: Integer, identifier: String, body: ListBuffer[Char],
-                 escaped: Boolean = false): ElementParseResult = {
+                 escaped: Boolean = false): ParseResult = {
     if (position == json.size)
-      new ElementParseResult(null, false, position, "Read past end of element")
+      new ParseResult(null, false, position, "Read past end of element")
     else {
       json.charAt(position) match {
-        case '"' if !escaped => new ElementParseResult(JsonString(identifier, body.foldLeft("")(_ + _)), true, position + 1, null)
+        case '"' if !escaped => new ParseResult(JsonString(identifier, body.foldLeft("")(_ + _)), true, position + 1, null)
         case '\\' => readString(json, position + 1, identifier, body, true)
         case chr if escaped => {
           body += (chr match {

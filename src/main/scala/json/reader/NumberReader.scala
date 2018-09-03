@@ -1,24 +1,24 @@
 package json.reader
 
-import json.{ElementParseResult, JsonNumber}
+import json.{ParseResult, JsonNumber}
 
 /**
   * Created by Ian on 09/07/2018.
   */
 class NumberReader extends Reader {
 
-  override def read(json: String, position: Integer, identifier: String): ElementParseResult =
+  override def read(json: String, position: Integer, identifier: String): ParseResult =
     readNumber(json, position, position, identifier)
 
-  def readNumber(json: String, position: Integer, startPosition: Integer, identifier: String): ElementParseResult = {
+  def readNumber(json: String, position: Integer, startPosition: Integer, identifier: String): ParseResult = {
     val chr = json.charAt(position)
     if (chr == ',' || chr == '}' || chr == ']') {
       val stringValue = json.substring(startPosition, position)
       val fields = "([+-]?[\\d.]+)((?:[eE][+-]?\\d+)?)".r.findFirstMatchIn(stringValue)
       if (fields.isDefined)
-        new ElementParseResult(JsonNumber(identifier, fields.get.group(1).toDouble * exponentPortion(fields.get.group(2))), true, position, null)
+        new ParseResult(JsonNumber(identifier, fields.get.group(1).toDouble * exponentPortion(fields.get.group(2))), true, position, null)
       else
-        new ElementParseResult(null, false, position, s"""Value "$stringValue" does not conform to expected numeric pattern""")
+        new ParseResult(null, false, position, s"""Value "$stringValue" does not conform to expected numeric pattern""")
     } else
       readNumber(json, position + 1, startPosition, identifier)
   }
