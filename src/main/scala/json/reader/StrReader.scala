@@ -1,8 +1,7 @@
 package json.reader
-import json.exceptions.{JsonException, ReadPastEndOfElementException, UnrecognisedEscapeSequenceException}
-import json.{JsonElement, JsonString}
 
-import scala.Char
+import json.{ElementParseResult, JsonString}
+
 import scala.collection.mutable.ListBuffer
 
 /**
@@ -10,16 +9,16 @@ import scala.collection.mutable.ListBuffer
   */
 class StrReader extends Reader {
 
-  override def read(json: String, position: Integer, identifier: String): (JsonElement, Integer) =
+  override def read(json: String, position: Integer, identifier: String): ElementParseResult =
     readString(json, position, identifier, ListBuffer[Char]())
 
   def readString(json: String, position: Integer, identifier: String, body: ListBuffer[Char],
-                 escaped: Boolean = false): (JsonString, Integer) = {
+                 escaped: Boolean = false): ElementParseResult = {
     if (position == json.size)
-      throw new ReadPastEndOfElementException(s"At: $position")
+      new ElementParseResult(null, false, position, "Read past end of element")
     else {
       json.charAt(position) match {
-        case '"' if !escaped => (JsonString(identifier, body.foldLeft("")(_ + _)), position + 1)
+        case '"' if !escaped => new ElementParseResult(JsonString(identifier, body.foldLeft("")(_ + _)), true, position + 1, null)
         case '\\' => readString(json, position + 1, identifier, body, true)
         case chr if escaped => {
           body += (chr match {

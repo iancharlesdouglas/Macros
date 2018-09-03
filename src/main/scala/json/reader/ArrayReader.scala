@@ -8,29 +8,29 @@ import json.exceptions.{InvalidArrayFormatException, InvalidObjectFormatExceptio
   */
 class ArrayReader extends Reader {
 
-  override def read(json: String, position: Integer = 0, identifier: String = ""): (JsonElement, Integer) =
+  override def read(json: String, position: Integer = 0, identifier: String = ""): ElementParseResult =
     readBody(json, position, JsonArray(identifier))
 
-  def readBody(json: String, position: Integer, jsonArray: JsonArray): (JsonArray, Integer) = {
+  def readBody(json: String, position: Integer, jsonArray: JsonArray): ElementParseResult = {
 
     /*if (position  == json.length)
       (jsonArray, position)
     else {*/
       json.charAt(position) match {
         case chr if whitespace(chr) => readBody(json, position + 1, jsonArray)
-        case ']' => (jsonArray, position + 1)
+        case ']' => new ElementParseResult(jsonArray, true, position + 1, null)
         case '{' =>
-          val (field, newPosition) = new ObjectReader().read(json, position + 1)
-          jsonArray.elements += field
-          readBody(json, newPosition, jsonArray)
+          val result = new ObjectReader().read(json, position + 1)
+          jsonArray.elements += result.it
+          readBody(json, result.position, jsonArray)
         case '[' =>
-          val (array, newPosition) = new ArrayReader().read(json, position + 1)
-          jsonArray.elements += array
-          readBody(json, newPosition, jsonArray)
+          val result = new ArrayReader().read(json, position + 1)
+          jsonArray.elements += result.it
+          readBody(json, result.position, jsonArray)
         case '"' =>
-          val (string, newPosition) = new StrReader().read(json, position + 1)
-          jsonArray.elements += string
-          readBody(json, newPosition, jsonArray)
+          val result = new StrReader().read(json, position + 1)
+          jsonArray.elements += result.it
+          readBody(json, result.position, jsonArray)
         case 't' if json.length > position + 3 && json.substring(position, position + 4) == "true" =>
           jsonArray.elements += new JsonBoolean("", true)
           readBody(json, position + 4, jsonArray)
@@ -42,9 +42,9 @@ class ArrayReader extends Reader {
           readBody(json, position + 4, jsonArray)
         case ',' => readBody(json, position + 1, jsonArray)
         case _ =>
-          val (number, newPosition) = new NumberReader().read(json, position)
-          jsonArray.elements += number
-          readBody(json, newPosition, jsonArray)
+          val result = new NumberReader().read(json, position)
+          jsonArray.elements += result.it
+          readBody(json, result.position, jsonArray)
       }
     //}
   }

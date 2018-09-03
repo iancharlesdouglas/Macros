@@ -1,6 +1,6 @@
 package json.reader
 
-import json.JsonElement
+import json.ElementParseResult
 
 import scala.collection.mutable.ListBuffer
 
@@ -9,7 +9,7 @@ import scala.collection.mutable.ListBuffer
   */
 abstract class Reader {
 
-  def read(json: String, position: Integer = 0, identifier: String = "") : (JsonElement, Integer)
+  def read(json: String, position: Integer = 0, identifier: String = "") : ElementParseResult
 
   def whitespace(what: Char): Boolean = List(' ', '\r', '\n', '\t', '\f').contains(what)
 
