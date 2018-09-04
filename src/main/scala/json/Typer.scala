@@ -17,7 +17,7 @@ object Typer {
       * @tparam T Type of the case class or Array/List/Vector/Seq to populate
       * @return Populated object created from the case class
       */
-    def jsonTo[T]: T = macro CompileTimeReaderWriter.jsonTo_impl[T]
+    def jsonTo[T]: TypedParseResult[T] = macro CompileTimeReaderWriter.jsonTo_impl[T]
   }
 
   implicit class JsonRef[T](val obj: T) {

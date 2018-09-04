@@ -17,9 +17,14 @@ object CompileTimeReaderWriter {
 
     objType.typeSymbol.name.toString match {
       case "Array" | "List" | "Vector" | "Seq" => {
-        readSequence(c)(q"import json._; reader.JsonReader.read($json).elements.toArray",
-          Some(objType.typeArgs.head),
-          objType.typeSymbol.name.toString)
+        q"""import json._; val _seq = reader.JsonReader.read($json)
+           if (_seq.successfully) {
+             ${readSequence(c)(q"_seq.it", Some(objType.typeArgs.head),
+          objType.typeSymbol.name.toString)}
+           } else {
+             TypedParseResult[${objType.typeArgs.head.typeSymbol.name.toString}](_seq.it, false, _seq.position, _seq.message)
+           }
+         """
       }
       case _ => readObject(c)(objType, q"import json._; reader.JsonReader.read($json)")
     }
@@ -101,7 +106,7 @@ object CompileTimeReaderWriter {
     q"""json.writer.JsonWriter.write(json.writer.DefaultWriteContext())($statements)"""
   }
 
-  def fromJson[T](json: String): T = macro fromJson_impl[T]
+  def fromJson[T](json: String): TypedParseResult[T] = macro fromJson_impl[T]
 
   def fromJson_impl[T: c.WeakTypeTag](c: Context)(json: c.Expr[String]): c.Tree = {
 
@@ -165,7 +170,8 @@ object CompileTimeReaderWriter {
         q"$fieldTerm = $fieldValue"
       }})
 
-       readObj($src)
+       val _res = readObj($src)
+       json.TypedParseResult[$className](_res.it, _res.successfully, _res.position, _res.message)
      """
   }
 

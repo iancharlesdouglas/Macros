@@ -11,26 +11,26 @@ class ReaderTests extends FlatSpec with Matchers {
 
   "Object reader" should "read empty object" in {
     val json = "{}"
-    val obj = JsonReader.read(json)
+    val obj = JsonReader.read(json).it
     obj shouldBe JsonObject()
   }
 
   it should "read nested object with id" in {
     val json = """{ "thing": {} }"""
-    val obj = JsonReader.read(json)
+    val obj = JsonReader.read(json).it
     obj shouldBe JsonObject(JsonObject("thing"))
   }
 
   it should "read nested object with string property" in {
     val json = """{ "thing": { "id": "ABC_1" } }"""
-    val obj = JsonReader.read(json)
+    val obj = JsonReader.read(json).it
     obj shouldBe JsonObject(JsonObject("thing", JsonString("id", "ABC_1")))
   }
 
   it should "read nested object with two string properties" in {
 
     val json = """{ "thing": { "id": "120E", "name": "A Name" } }"""
-    val obj = JsonReader.read(json)
+    val obj = JsonReader.read(json).it
 
     obj shouldBe JsonObject(JsonObject("thing",
       JsonString("id", "120E"),
@@ -40,7 +40,7 @@ class ReaderTests extends FlatSpec with Matchers {
   it should "read nested object with a string and a numeric property" in {
 
     val json = """{ "thing": { "id": "120E", "price": 123E3 } }"""
-    val obj = JsonReader.read(json)
+    val obj = JsonReader.read(json).it
 
     obj shouldBe JsonObject(JsonObject("thing",
       JsonString("id", "120E"),
@@ -49,37 +49,37 @@ class ReaderTests extends FlatSpec with Matchers {
 
   it should "read string property escaped with CRLFs" in {
     val json = """{ "prop": "Line 1\r\nLine 2" }"""
-    val obj = JsonReader.read(json)
+    val obj = JsonReader.read(json).it
     obj shouldBe JsonObject(JsonString("prop", "Line 1\r\nLine 2"))
   }
 
   it should "read string property with an escaped Unicode value" in {
     val json = """{ "prop": "Value: One\u0020Two" }"""
-    val obj = JsonReader.read(json)
+    val obj = JsonReader.read(json).it
     obj shouldBe JsonObject(JsonString("prop", "Value: One Two"))
   }
 
   it should "read string property with form feed, tab and backspace directives" in {
     val json = """{ "prop": "Value: \fOne\b\tTwo" }"""
-    val obj = JsonReader.read(json)
+    val obj = JsonReader.read(json).it
     obj shouldBe JsonObject(JsonString("prop", "Value: \fOne\b\tTwo"))
   }
 
   it should "read a Boolean property of true" in {
     val json = """{ "exists": true }"""
-    val obj = JsonReader.read(json)
+    val obj = JsonReader.read(json).it
     obj shouldBe JsonObject(JsonBoolean("exists", true))
   }
 
   it should "read a Boolean property of false" in {
     val json = """{ "exists": false } """
-    val obj = JsonReader.read(json)
+    val obj = JsonReader.read(json).it
     obj shouldBe JsonObject(JsonBoolean("exists", false))
   }
 
   it should "read a null property" in {
     val json = """{ "exists": null }"""
-    val obj = JsonReader.read(json)
+    val obj = JsonReader.read(json).it
     obj shouldBe JsonObject(JsonNull("exists"))
   }
 
@@ -92,58 +92,56 @@ class ReaderTests extends FlatSpec with Matchers {
         |$tab  "exists": false
         |}
       """.stripMargin
-    val obj = JsonReader.read(jsonWithTabFF)
+    val obj = JsonReader.read(jsonWithTabFF).it
     obj shouldBe JsonObject(JsonBoolean("exists", false))
   }
 
   it should "read a number value" in {
 
     val json = """{ "number": 1.23 }"""
-    val obj = JsonReader.read(json)
+    val obj = JsonReader.read(json).it
     obj shouldBe JsonObject(JsonNumber("number", BigDecimal(1.23)))
 
     val jsonNeg = """{ "number": -1.23 }"""
-    val objForNeg = JsonReader.read(jsonNeg)
+    val objForNeg = JsonReader.read(jsonNeg).it
     objForNeg shouldBe JsonObject(JsonNumber("number", BigDecimal(-1.23)))
   }
 
   it should "read a negative exponential number value" in {
     val json = """{ "number": 123e-2 }"""
-    val obj = JsonReader.read(json)
+    val obj = JsonReader.read(json).it
     obj shouldBe JsonObject(JsonNumber("number", BigDecimal(1.23)))
   }
 
   it should "read a positive exponential number value" in {
 
     val json = """{ "number": 1.23e+2 }"""
-    val obj = JsonReader.read(json)
+    val obj = JsonReader.read(json).it
     obj shouldBe JsonObject(JsonNumber("number", BigDecimal(123)))
 
     val jsonUnsigned = """{ "number": 1.23e2 }"""
-    val objForUnsgn = JsonReader.read(jsonUnsigned)
+    val objForUnsgn = JsonReader.read(jsonUnsigned).it
     objForUnsgn shouldBe JsonObject(JsonNumber("number", BigDecimal(123)))
   }
 
   it should "throw an exception if a number is invalid" in {
     val json = """{"number": X}"""
-    intercept[NumberFormatException] {
-      JsonReader.read(json)
-    }
+    val result = JsonReader.read(json)
+    result.successfully shouldBe false
   }
 
   it should "throw an exception for a malformed object" in {
     val json = """{"number: 1"""
-    intercept[ReadPastEndOfElementException] {
-      JsonReader.read(json)
-    }
+    val result = JsonReader.read(json)
+    result.successfully shouldBe false
   }
 
   it should "throw an exception for an incorrect exponent sign" in {
     val json = """{number: 1.23e/2}"""
-    intercept[JsonException] {
-      JsonReader.read(json)
-    }
+    val result = JsonReader.read(json)
+    result.successfully shouldBe false
   }
+
   it should "read a realistically complex object" in {
 
     val json =
@@ -164,7 +162,7 @@ class ReaderTests extends FlatSpec with Matchers {
         |]
         |}""".stripMargin
 
-    val obj = JsonReader.read(json)
+    val obj = JsonReader.read(json).it
 
     obj shouldBe JsonObject(JsonNumber("id", 123000),
       JsonString("name", "ACME Corporation"),
@@ -187,16 +185,14 @@ class ReaderTests extends FlatSpec with Matchers {
 
   it should "throw an exception if the document root character is unsupported" in {
     val json = "@ { }"
-    val thrown = intercept[UnrecognisedRootElementException] {
-      val obj = JsonReader.read(json)
-    }
-    thrown.getMessage shouldBe "Character: @"
+    val result = JsonReader.read(json)
+    result.successfully shouldBe false
+    //thrown.getMessage shouldBe "Character: @"
   }
 
   it should "throw an exception if the fields of a document are malformed" in {
     val json = """{"id": "One}"""
-    val thrown = intercept[ReadPastEndOfElementException] {
-      val obj = JsonReader.read(json)
-    }
+    val result = JsonReader.read(json)
+    result.successfully shouldBe false
   }
 }

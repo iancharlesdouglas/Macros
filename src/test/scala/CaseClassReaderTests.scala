@@ -15,7 +15,7 @@ class CaseClassReaderTests extends FlatSpec with Matchers {
                      inactive: Boolean)
 
     val thing = ("""{"id":1,"name":"One","status":10,"typeId":3,"code":2,""" +
-      """"roughPrice":1.33,"price":1.3,"char":"X","active":true,"inactive":false}""").jsonTo[Thing]
+      """"roughPrice":1.33,"price":1.3,"char":"X","active":true,"inactive":false}""").jsonTo[Thing].it
 
     thing shouldBe Thing(1, "One", 10L, 3.toShort, 2.toByte, 1.33F, 1.30, 'X', true, false)
   }
@@ -30,7 +30,7 @@ class CaseClassReaderTests extends FlatSpec with Matchers {
 
     case class Place(id: Int, city: City)
 
-    val place = """{"id":1,"city":{"id":1,"name":"London","country":{"id":1,"name":"UK"}}}""".jsonTo[Place]
+    val place = """{"id":1,"city":{"id":1,"name":"London","country":{"id":1,"name":"UK"}}}""".jsonTo[Place].it
 
     place shouldBe Place(1, City(1, "London", Country(1, "UK")))
   }
@@ -41,11 +41,11 @@ class CaseClassReaderTests extends FlatSpec with Matchers {
 
     case class Thing(id: Int, size: Option[Int])
 
-    val thing = """{"id":1,"size":10}""".jsonTo[Thing]
+    val thing = """{"id":1,"size":10}""".jsonTo[Thing].it
 
     thing shouldBe Thing(1, Some(10))
 
-    val thingWithNull = """{"id":1,"size":null}""".jsonTo[Thing]
+    val thingWithNull = """{"id":1,"size":null}""".jsonTo[Thing].it
 
     thingWithNull shouldBe Thing(1, None)
   }
@@ -60,7 +60,7 @@ class CaseClassReaderTests extends FlatSpec with Matchers {
 
     thing shouldBe Thing(1, Some(10L))
 
-    val thingWithNull = """{"id":1,"size":null}""".jsonTo[Thing]
+    val thingWithNull = """{"id":1,"size":null}""".jsonTo[Thing].it
 
     thingWithNull shouldBe Thing(1, None)
   }
@@ -71,11 +71,11 @@ class CaseClassReaderTests extends FlatSpec with Matchers {
 
     case class Thing(id: Int, size: Option[Short])
 
-    val thing = """{"id":1,"size":10}""".jsonTo[Thing]
+    val thing = """{"id":1,"size":10}""".jsonTo[Thing].it
 
     thing shouldBe Thing(1, Some(10.toShort))
 
-    val thingWithNull = """{"id":1,"size":null}""".jsonTo[Thing]
+    val thingWithNull = """{"id":1,"size":null}""".jsonTo[Thing].it
 
     thingWithNull shouldBe Thing(1, None)
   }
@@ -86,11 +86,11 @@ class CaseClassReaderTests extends FlatSpec with Matchers {
 
     case class Thing(id: Int, size: Option[Byte])
 
-    val thing = """{"id":1,"size":10}""".jsonTo[Thing]
+    val thing = """{"id":1,"size":10}""".jsonTo[Thing].it
 
     thing shouldBe Thing(1, Some(10.toByte))
 
-    val thingWithNull = """{"id":1,"size":null}""".jsonTo[Thing]
+    val thingWithNull = """{"id":1,"size":null}""".jsonTo[Thing].it
 
     thingWithNull shouldBe Thing(1, None)
   }
@@ -101,11 +101,11 @@ class CaseClassReaderTests extends FlatSpec with Matchers {
 
     case class Thing(id: Int, size: Option[Float])
 
-    val thing = """{"id":1,"size":10}""".jsonTo[Thing]
+    val thing = """{"id":1,"size":10}""".jsonTo[Thing].it
 
     thing shouldBe Thing(1, Some(10F))
 
-    val thingWithNull = """{"id":1,"size":null}""".jsonTo[Thing]
+    val thingWithNull = """{"id":1,"size":null}""".jsonTo[Thing].it
 
     thingWithNull shouldBe Thing(1, None)
   }
@@ -116,11 +116,11 @@ class CaseClassReaderTests extends FlatSpec with Matchers {
 
     case class Thing(id: Int, size: Option[Double])
 
-    val thing = """{"id":1,"size":10}""".jsonTo[Thing]
+    val thing = """{"id":1,"size":10}""".jsonTo[Thing].it
 
     thing shouldBe Thing(1, Some(10.0))
 
-    val thingWithNull = """{"id":1,"size":null}""".jsonTo[Thing]
+    val thingWithNull = """{"id":1,"size":null}""".jsonTo[Thing].it
 
     thingWithNull shouldBe Thing(1, None)
   }
@@ -131,11 +131,11 @@ class CaseClassReaderTests extends FlatSpec with Matchers {
 
     case class Thing(id: Int, size: Option[String])
 
-    val thing = """{"id":1,"size":"One"}""".jsonTo[Thing]
+    val thing = """{"id":1,"size":"One"}""".jsonTo[Thing].it
 
     thing shouldBe Thing(1, Some("One"))
 
-    val thingWithNull = """{"id":1,"size":null}""".jsonTo[Thing]
+    val thingWithNull = """{"id":1,"size":null}""".jsonTo[Thing].it
 
     thingWithNull shouldBe Thing(1, None)
   }
@@ -146,11 +146,11 @@ class CaseClassReaderTests extends FlatSpec with Matchers {
 
     case class Thing(id: Int, size: Option[Char])
 
-    val thing = """{"id":1,"size":"O"}""".jsonTo[Thing]
+    val thing = """{"id":1,"size":"O"}""".jsonTo[Thing].it
 
     thing shouldBe Thing(1, Some('O'))
 
-    val thingWithNull = """{"id":1,"size":null}""".jsonTo[Thing]
+    val thingWithNull = """{"id":1,"size":null}""".jsonTo[Thing].it
 
     thingWithNull shouldBe Thing(1, None)
   }
@@ -161,7 +161,7 @@ class CaseClassReaderTests extends FlatSpec with Matchers {
 
     case class Thing(id: Int, size: Option[Char])
 
-    val thing = """{"id":1,"size":"OPQ"}""".jsonTo[Thing]
+    val thing = """{"id":1,"size":"OPQ"}""".jsonTo[Thing].it
 
     thing shouldBe Thing(1, Some('O'))
   }
@@ -172,15 +172,15 @@ class CaseClassReaderTests extends FlatSpec with Matchers {
 
     case class Thing(id: Int, size: Option[Boolean])
 
-    val thing = """{"id":1,"size":true}""".jsonTo[Thing]
+    val thing = """{"id":1,"size":true}""".jsonTo[Thing].it
 
     thing shouldBe Thing(1, Some(true))
 
-    val thingWithNull = """{"id":1,"size":null}""".jsonTo[Thing]
+    val thingWithNull = """{"id":1,"size":null}""".jsonTo[Thing].it
 
     thingWithNull shouldBe Thing(1, None)
 
-    val thingWithFalse = """{"id":1,"size":false}""".jsonTo[Thing]
+    val thingWithFalse = """{"id":1,"size":false}""".jsonTo[Thing].it
 
     thingWithFalse shouldBe Thing(1, Some(false))
   }
@@ -193,11 +193,11 @@ class CaseClassReaderTests extends FlatSpec with Matchers {
 
     case class Thing(id: Int, place: Option[Place])
 
-    val thing = """{"id":1,"place":{"id":1,"name":"One"}}""".jsonTo[Thing]
+    val thing = """{"id":1,"place":{"id":1,"name":"One"}}""".jsonTo[Thing].it
 
     thing shouldBe Thing(1, Some(Place(1, "One")))
 
-    val nullPlaceThing = """{"id":1,"place":null}""".jsonTo[Thing]
+    val nullPlaceThing = """{"id":1,"place":null}""".jsonTo[Thing].it
 
     nullPlaceThing shouldBe Thing(1, None)
   }
@@ -208,7 +208,7 @@ class CaseClassReaderTests extends FlatSpec with Matchers {
 
     case class Thing(id: Int, places: Array[Int])
 
-    val thing = """{"id":1,"places":[1,2,3]}""".jsonTo[Thing]
+    val thing = """{"id":1,"places":[1,2,3]}""".jsonTo[Thing].it
 
     thing.id shouldBe 1
     thing.places shouldBe Array(1, 2, 3)
@@ -220,7 +220,7 @@ class CaseClassReaderTests extends FlatSpec with Matchers {
 
     case class Thing(id: Int, places: Array[Long])
 
-    val thing = """{"id": 1, "places": [1, 2, 3]}""".jsonTo[Thing]
+    val thing = """{"id": 1, "places": [1, 2, 3]}""".jsonTo[Thing].it
 
     thing.id shouldBe 1
     thing.places shouldBe Array(1L, 2L, 3L)
@@ -232,7 +232,7 @@ class CaseClassReaderTests extends FlatSpec with Matchers {
 
     case class Thing(id: Int, places: Array[Short])
 
-    val thing = """{"id":1,"places":[1,2,3]}""".jsonTo[Thing]
+    val thing = """{"id":1,"places":[1,2,3]}""".jsonTo[Thing].it
 
     thing.id shouldBe 1
     thing.places shouldBe Array(1.toShort, 2.toShort, 3.toShort)
@@ -244,7 +244,7 @@ class CaseClassReaderTests extends FlatSpec with Matchers {
 
     case class Thing(id: Int, places: Array[Byte])
 
-    val thing = """{"id":1,"places":[1,2,3]}""".jsonTo[Thing]
+    val thing = """{"id":1,"places":[1,2,3]}""".jsonTo[Thing].it
 
     thing.id shouldBe 1
     thing.places shouldBe Array(1.toByte, 2.toByte, 3.toByte)
@@ -256,7 +256,7 @@ class CaseClassReaderTests extends FlatSpec with Matchers {
 
     case class Thing(id: Int, places: Array[Float])
 
-    val thing = """{"id":1,"places":[1,2,3]}""".jsonTo[Thing]
+    val thing = """{"id":1,"places":[1,2,3]}""".jsonTo[Thing].it
 
     thing.id shouldBe 1
     thing.places shouldBe Array(1F, 2F, 3F)
@@ -268,7 +268,7 @@ class CaseClassReaderTests extends FlatSpec with Matchers {
 
     case class Thing(id: Int, places: Array[Double])
 
-    val thing = """{"id":1,"places":[1,2,3]}""".jsonTo[Thing]
+    val thing = """{"id":1,"places":[1,2,3]}""".jsonTo[Thing].it
 
     thing.id shouldBe 1
     thing.places shouldBe Array(1.0, 2.0, 3.0)
@@ -280,7 +280,7 @@ class CaseClassReaderTests extends FlatSpec with Matchers {
 
     case class Thing(id: Int, places: Array[String])
 
-    val thing = """{"id":1,"places":["1","2","3"]}""".jsonTo[Thing]
+    val thing = """{"id":1,"places":["1","2","3"]}""".jsonTo[Thing].it
 
     thing.id shouldBe 1
     thing.places shouldBe Array("1", "2", "3")
@@ -292,7 +292,7 @@ class CaseClassReaderTests extends FlatSpec with Matchers {
 
     case class Thing(id: Int, places: Array[Char])
 
-    val thing = """{"id":1,"places":["1","2","3"]}""".jsonTo[Thing]
+    val thing = """{"id":1,"places":["1","2","3"]}""".jsonTo[Thing].it
 
     thing.id shouldBe 1
     thing.places shouldBe Array('1', '2', '3')
@@ -304,7 +304,7 @@ class CaseClassReaderTests extends FlatSpec with Matchers {
 
     case class Thing(id: Int, places: Array[Boolean])
 
-    val thing = """{"id":1,"places":[true,false]}""".jsonTo[Thing]
+    val thing = """{"id":1,"places":[true,false]}""".jsonTo[Thing].it
 
     thing.id shouldBe 1
     thing.places shouldBe Array(true, false)
@@ -317,7 +317,7 @@ class CaseClassReaderTests extends FlatSpec with Matchers {
     case class Place(id: Int, name: String)
     case class Thing(id: Int, places: Array[Place])
 
-    val thing = """{"id":1,"places":[{"id":1,"name":"UK"},{"id":2,"name":"Eire"}]}""".jsonTo[Thing]
+    val thing = """{"id":1,"places":[{"id":1,"name":"UK"},{"id":2,"name":"Eire"}]}""".jsonTo[Thing].it
 
     thing.places.size shouldBe 2
     thing.places(0) shouldBe Place(1, "UK")
@@ -330,7 +330,7 @@ class CaseClassReaderTests extends FlatSpec with Matchers {
 
     case class Thing(id: Int, places: List[Int])
 
-    val thing = """{"id":1,"places":[1,2]}""".jsonTo[Thing]
+    val thing = """{"id":1,"places":[1,2]}""".jsonTo[Thing].it
 
     thing.id shouldBe 1
     thing.places shouldBe List(1, 2)
@@ -342,7 +342,7 @@ class CaseClassReaderTests extends FlatSpec with Matchers {
 
     case class Thing(id: Int, places: Vector[Int])
 
-    val thing = """{"id":1,"places":[1,2]}""".jsonTo[Thing]
+    val thing = """{"id":1,"places":[1,2]}""".jsonTo[Thing].it
 
     thing.id shouldBe 1
     thing.places shouldBe Vector(1, 2)
@@ -354,7 +354,7 @@ class CaseClassReaderTests extends FlatSpec with Matchers {
 
     case class Thing(id: Int, places: Seq[Int])
 
-    val thing = """{"id":1,"places":[1,2]}""".jsonTo[Thing]
+    val thing = """{"id":1,"places":[1,2]}""".jsonTo[Thing].it
 
     thing.id shouldBe 1
     thing.places shouldBe Seq(1, 2)
@@ -364,7 +364,7 @@ class CaseClassReaderTests extends FlatSpec with Matchers {
 
     import Typer._
 
-    val array = "[1,2,3]".jsonTo[Array[Int]]
+    val array = "[1,2,3]".jsonTo[Array[Int]].it
 
     array shouldBe Array(1, 2, 3)
   }
@@ -375,7 +375,7 @@ class CaseClassReaderTests extends FlatSpec with Matchers {
 
     case class Thing(id:Int, places: Option[Array[Int]])
 
-    val thing = """{"id":1,"places":[1,2,3]}""".jsonTo[Thing]
+    val thing = """{"id":1,"places":[1,2,3]}""".jsonTo[Thing].it
 
     thing.id shouldBe 1
     thing.places.get shouldBe Array(1, 2, 3)
@@ -387,7 +387,7 @@ class CaseClassReaderTests extends FlatSpec with Matchers {
 
     case class Thing(id: Int, places: Option[Array[Int]])
 
-    val thing = """{"id":1,"places":null}""".jsonTo[Thing]
+    val thing = """{"id":1,"places":null}""".jsonTo[Thing].it
 
     thing.id shouldBe 1
     thing.places shouldBe None
@@ -400,7 +400,7 @@ class CaseClassReaderTests extends FlatSpec with Matchers {
     case class Place(id: Int, name: String)
     case class Thing(id: Int, places: Option[Array[Place]])
 
-    val thing = """{"id":1,"places":[{"id":1,"name":"London"},{"id":2,"name":"UK"}]}""".jsonTo[Thing]
+    val thing = """{"id":1,"places":[{"id":1,"name":"London"},{"id":2,"name":"UK"}]}""".jsonTo[Thing].it
 
     thing.id shouldBe 1
     thing.places.get.size shouldBe 2
@@ -416,7 +416,7 @@ class CaseClassReaderTests extends FlatSpec with Matchers {
 
     case class Thing(id: Int, rates: Option[Vector[Float]])
 
-    val thing = """{"id":1,"rates":[1.001, 2.002]}""".jsonTo[Thing]
+    val thing = """{"id":1,"rates":[1.001, 2.002]}""".jsonTo[Thing].it
 
     thing.id shouldBe 1
     thing.rates.get shouldBe Vector(1.001F, 2.002F)
@@ -428,7 +428,7 @@ class CaseClassReaderTests extends FlatSpec with Matchers {
 
     case class Thing(id: Int, prices: Option[Seq[Double]])
 
-    val thing = """{"id":1,"prices":[10.01, 20.02]}""".jsonTo[Thing]
+    val thing = """{"id":1,"prices":[10.01, 20.02]}""".jsonTo[Thing].it
 
     thing.id shouldBe 1
     thing.prices.get shouldBe Seq(10.01, 20.02)
@@ -440,7 +440,7 @@ class CaseClassReaderTests extends FlatSpec with Matchers {
 
     case class Thing(id: Int, combinations: Array[Array[Int]])
 
-    val thing = """{"id":1,"combinations":[[1,2],[1,3]]}""".jsonTo[Thing]
+    val thing = """{"id":1,"combinations":[[1,2],[1,3]]}""".jsonTo[Thing].it
 
     thing.id shouldBe 1
     thing.combinations shouldBe Array(Array(1, 2), Array(1, 3))
@@ -452,7 +452,7 @@ class CaseClassReaderTests extends FlatSpec with Matchers {
 
     case class Thing(id: Int, combinations: Array[List[Boolean]])
 
-    val thing = """{"id": 1, "combinations": [[true, false], [false, false]]}""".jsonTo[Thing]
+    val thing = """{"id": 1, "combinations": [[true, false], [false, false]]}""".jsonTo[Thing].it
 
     thing.id shouldBe 1
     thing.combinations shouldBe Array(List(true, false), List(false, false))
@@ -464,7 +464,7 @@ class CaseClassReaderTests extends FlatSpec with Matchers {
 
     case class Thing(id: Int, combinations: List[Vector[Float]])
 
-    val thing = """{"id":1,"combinations":[[1.01, 0.0002], [200.04, 2992.0, 2992.31]]}""".jsonTo[Thing]
+    val thing = """{"id":1,"combinations":[[1.01, 0.0002], [200.04, 2992.0, 2992.31]]}""".jsonTo[Thing].it
 
     thing.id shouldBe 1
     thing.combinations shouldBe List(Vector(1.01F, 0.0002F), Vector(200.04F, 2992F, 2992.31F))
@@ -476,7 +476,7 @@ class CaseClassReaderTests extends FlatSpec with Matchers {
 
     case class Thing(id: Int, flags: Vector[Seq[Boolean]])
 
-    val thing = """{"id":1,"flags":[[true,false], [false, false, false]]}""".jsonTo[Thing]
+    val thing = """{"id":1,"flags":[[true,false], [false, false, false]]}""".jsonTo[Thing].it
 
     thing.id shouldBe 1
     thing.flags shouldBe Vector(Seq(true, false), Seq(false, false, false))
@@ -486,7 +486,7 @@ class CaseClassReaderTests extends FlatSpec with Matchers {
 
     import Typer._
 
-    val things = """[1, null, 2, null, 3]""".jsonTo[Array[Option[Int]]]
+    val things = """[1, null, 2, null, 3]""".jsonTo[Array[Option[Int]]].it
 
     things shouldBe Array(Some(1), None, Some(2), None, Some(3))
   }
@@ -497,7 +497,7 @@ class CaseClassReaderTests extends FlatSpec with Matchers {
 
     case class Thing(id: Int)
 
-    val thing = """{"id":1}""".jsonTo[Thing]
+    val thing = """{"id":1}""".jsonTo[Thing].it
 
     thing.id shouldBe 1
   }
@@ -508,21 +508,21 @@ class CaseClassReaderTests extends FlatSpec with Matchers {
 
     case class Item(id: Int, price: BigDecimal)
 
-    val item = """{"id":1,"price":10"}""".jsonTo[Item]
+    val item = """{"id":1,"price":10"}""".jsonTo[Item].it
 
     item.price shouldBe 10
 
     case class ItemOptional(id: Int, price: Option[BigDecimal])
 
-    val itemOptional = """{"id":1,"price":10}""".jsonTo[ItemOptional]
+    val itemOptional = """{"id":1,"price":10}""".jsonTo[ItemOptional].it
 
     itemOptional.price shouldBe Some(10)
 
-    val itemNull = """{"id":1,"price":null}""".jsonTo[ItemOptional]
+    val itemNull = """{"id":1,"price":null}""".jsonTo[ItemOptional].it
 
     itemNull.price shouldBe None
 
-    val arrayOptional = """[100000,2]""".jsonTo[Array[Option[BigDecimal]]]
+    val arrayOptional = """[100000,2]""".jsonTo[Array[Option[BigDecimal]]].it
 
     arrayOptional shouldBe Array(Some(BigDecimal(100000)), Some(BigDecimal(2)))
   }
@@ -535,21 +535,21 @@ class CaseClassReaderTests extends FlatSpec with Matchers {
 
     val price = 1000000000
 
-    val item = s"""{"id":1,"price":$price}""".jsonTo[Item]
+    val item = s"""{"id":1,"price":$price}""".jsonTo[Item].it
 
     item.price shouldBe price
 
     case class ItemOptional(id: Int, price: Option[BigInt])
 
-    val itemOptional = s"""{"id":1,"price":$price}""".jsonTo[ItemOptional]
+    val itemOptional = s"""{"id":1,"price":$price}""".jsonTo[ItemOptional].it
 
     itemOptional.price shouldBe Some(price)
 
-    val itemNull = """{"id":1,"price":null}""".jsonTo[ItemOptional]
+    val itemNull = """{"id":1,"price":null}""".jsonTo[ItemOptional].it
 
     itemNull.price shouldBe None
 
-    val arrayOptional = s"[$price,2]".jsonTo[Array[Option[BigInt]]]
+    val arrayOptional = s"[$price,2]".jsonTo[Array[Option[BigInt]]].it
 
     arrayOptional shouldBe Array(Some(BigInt(price)), Some(BigInt(2)))
   }

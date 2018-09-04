@@ -3,7 +3,7 @@ import json.{ParseResult, JsonElement}
 
 case object JsonReader extends Reader {
 
-  def read(json: String): JsonElement = read(json, 0, "").it
+  def read(json: String): ParseResult = read(json, 0, "")
 
   override def read(json: String, position: Integer, identifier: String): ParseResult =
     readBody(json, position)

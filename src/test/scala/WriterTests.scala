@@ -113,7 +113,7 @@ class WriterTests extends FlatSpec with Matchers {
 
   it should "write and read a complex object symmetrically" in {
     val json = """{"id":1000,"name":"One","deals":[{"id":10101,"price":100000},{"id":10011,"price":200000}],"active":true,"parent":null}"""
-    val readIn = JsonReader.read(json)
+    val readIn = JsonReader.read(json).it
     val writtenOut = JsonWriter.write(DefaultWriteContext())(readIn)
     writtenOut shouldBe json
   }
