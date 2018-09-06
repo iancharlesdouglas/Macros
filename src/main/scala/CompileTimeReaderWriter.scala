@@ -17,16 +17,23 @@ object CompileTimeReaderWriter {
 
     objType.typeSymbol.name.toString match {
       case "Array" | "List" | "Vector" | "Seq" => {
-        q"""import json._; val _seq = reader.JsonReader.read($json)
+        val typeArgName = Ident(TermName(objType.typeArgs.head.typeSymbol.name.toString))
+        val x = q"""import json._; val _seq = reader.JsonReader.read($json)
            if (_seq.successfully) {
-             ${readSequence(c)(q"_seq.it", Some(objType.typeArgs.head),
-          objType.typeSymbol.name.toString)}
+             new json.TypedParseResult[$typeArgName](
+               ${readSequence(c)(q"_seq.it", Some(objType.typeArgs.head),
+                 objType.typeSymbol.name.toString)}, true, _seq.position, _seq.message)
            } else {
-             TypedParseResult[${objType.typeArgs.head.typeSymbol.name.toString}](_seq.it, false, _seq.position, _seq.message)
+             new json.TypedParseResult[$typeArgName](_seq.it, false, _seq.position, _seq.message)
            }
          """
+        x
       }
-      case _ => readObject(c)(objType, q"import json._; reader.JsonReader.read($json)")
+      case _ => val x = q"""import json._
+                            val _obj = reader.JsonReader.read($json)
+                      new json.TypedParseResult[${Ident(TermName(objType.typeSymbol.name.toString))}](
+        ${readObject(c)(objType, q"_obj.it")}, _obj.successfully, _obj.position, _obj.message)"""
+        x
     }
   }
 
@@ -171,7 +178,7 @@ object CompileTimeReaderWriter {
       }})
 
        val _res = readObj($src)
-       json.TypedParseResult[$className](_res.it, _res.successfully, _res.position, _res.message)
+       new json.TypedParseResult[$consSelect](_res.it, _res.successfully, _res.position, _res.message)
      """
   }
 
